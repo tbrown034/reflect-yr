@@ -117,7 +117,7 @@ export default function RecommendationsDisplay({
                   )}
                 </div>
 
-                <div className="flex-grow">
+                <div className="grow">
                   {/* Title & Year */}
                   <div className="flex justify-between">
                     <Link href={detailPath} className="hover:underline">

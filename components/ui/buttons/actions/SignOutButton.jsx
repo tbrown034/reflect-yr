@@ -16,18 +16,18 @@ export const SignOut = () => {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            console.log("[SignOutButton] Sign-out successful, redirecting...");
+            console.log("[SignOutButton] Sign-out successful");
             router.push("/");
             router.refresh();
           },
           onError: (error) => {
-            console.error("[SignOutButton] Sign-out error:", error);
+            console.error("[SignOutButton] Error:", error);
             setIsLoading(false);
           },
         },
       });
     } catch (err) {
-      console.error("[SignOutButton] Sign-out exception:", err);
+      console.error("[SignOutButton] Exception:", err.message);
       setIsLoading(false);
     }
   };

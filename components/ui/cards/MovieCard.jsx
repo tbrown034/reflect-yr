@@ -28,7 +28,7 @@ export default function MovieCard({ movie }) {
     <li className="h-full">
       <Link href={`/movies/${movie.id}`} className="block h-full">
         <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 h-full flex flex-col relative">
-          <div className="relative aspect-[2/3] w-full overflow-hidden">
+          <div className="relative aspect-2/3 w-full overflow-hidden">
             <Image
               src={imageError ? "/placeholder-movie.jpg" : posterUrl}
               alt={`${movie.title} poster`}
@@ -52,14 +52,14 @@ export default function MovieCard({ movie }) {
 
           <div className="h-1.5 w-full bg-linear-to-r from-blue-500 via-blue-600 to-purple-600"></div>
 
-          <div className="p-5 flex-grow flex flex-col bg-white dark:bg-gray-800">
+          <div className="p-5 grow flex flex-col bg-white dark:bg-gray-800">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 mb-1">
               {movie.title}
             </h3>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
               {year}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 flex-grow">
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 grow">
               {movie.overview || "No overview available."}
             </p>
           </div>

@@ -78,13 +78,13 @@ export default function PublishedListHeader({
             type="text"
             value={editableTitle}
             onChange={onTitleChange}
-            className="flex-grow text-3xl font-bold p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full min-w-0"
+            className="grow text-3xl font-bold p-2 border rounded dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full min-w-0"
             autoFocus
             aria-label="List title input"
           />
         ) : (
           // Display the list title, allowing word breaks
-          <h1 className="text-3xl font-bold flex-grow min-w-0 break-words mr-2">
+          <h1 className="text-3xl font-bold grow min-w-0 break-words mr-2">
             {displayTitle}
           </h1>
         )}

@@ -12,15 +12,15 @@ const themeIcons = {
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1">
         <div className="w-3 h-3 rounded-full bg-current" />
-        <div className="h-2 bg-current/60 rounded flex-grow" />
+        <div className="h-2 bg-current/60 rounded grow" />
       </div>
       <div className="flex items-center gap-1">
         <div className="w-3 h-3 rounded-full bg-current/70" />
-        <div className="h-2 bg-current/40 rounded flex-grow" />
+        <div className="h-2 bg-current/40 rounded grow" />
       </div>
       <div className="flex items-center gap-1">
         <div className="w-3 h-3 rounded-full bg-current/50" />
-        <div className="h-2 bg-current/30 rounded flex-grow" />
+        <div className="h-2 bg-current/30 rounded grow" />
       </div>
     </div>
   ),
@@ -29,7 +29,7 @@ const themeIcons = {
       {[...Array(6)].map((_, i) => (
         <div
           key={i}
-          className="aspect-[2/3] bg-current rounded-sm"
+          className="aspect-2/3 bg-current rounded-sm"
           style={{ opacity: 1 - i * 0.1 }}
         />
       ))}
@@ -58,11 +58,11 @@ const themeIcons = {
     <div className="flex flex-col gap-1 font-serif text-[8px]">
       <div className="flex items-baseline gap-1">
         <span className="opacity-50">01</span>
-        <span className="bg-current/60 h-1.5 flex-grow rounded" />
+        <span className="bg-current/60 h-1.5 grow rounded" />
       </div>
       <div className="flex items-baseline gap-1">
         <span className="opacity-50">02</span>
-        <span className="bg-current/40 h-1.5 flex-grow rounded" />
+        <span className="bg-current/40 h-1.5 grow rounded" />
       </div>
     </div>
   ),

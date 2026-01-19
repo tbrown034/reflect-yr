@@ -179,3 +179,18 @@ See `TODO.md` for full roadmap. Key items:
 - Social share images (OG tags)
 - Cloud sync for logged-in users
 - Public list discovery
+
+---
+
+## Workspace Context
+
+**Project Name**: reflectyr
+**Location**: `~/Desktop/ActiveProjects/reflectyr`
+**GitHub**: github.com/tbrown034/reflectyr
+
+This project is part of Trevor Brown's ActiveProjects workspace:
+- Workspace docs: `~/Desktop/ActiveProjects/_docs/`
+- Project status: See `_docs/status.md` for all project statuses
+- Naming convention: kebab-case
+
+Last updated: 2026-01-08

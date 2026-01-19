@@ -6,7 +6,7 @@ export default function MovieDetailLoading() {
         <div className="md:flex animate-pulse">
           {/* Poster Placeholder */}
           <div className="md:w-1/3 lg:w-1/4">
-            <div className="relative w-full aspect-[2/3] md:rounded-l-xl overflow-hidden bg-gray-300 dark:bg-gray-600"></div>
+            <div className="relative w-full aspect-2/3 md:rounded-l-xl overflow-hidden bg-gray-300 dark:bg-gray-600"></div>
           </div>
 
           {/* Details Placeholder */}

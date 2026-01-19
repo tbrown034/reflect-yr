@@ -6,7 +6,7 @@ export default function MovieDetailLoading() {
         <div className="md:flex">
           {/* Poster skeleton */}
           <div className="md:w-1/3 lg:w-1/4">
-            <div className="aspect-[2/3] bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="aspect-2/3 bg-gray-200 dark:bg-gray-700 animate-pulse" />
           </div>
 
           {/* Details skeleton */}

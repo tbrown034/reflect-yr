@@ -17,9 +17,14 @@ export const SignInButton = ({ className }) => {
         provider: "google",
         callbackURL: "/profile",
       });
-      console.log("[SignInButton] Sign-in initiated:", result);
+
+      if (result?.error) {
+        console.error("[SignInButton] Error:", result.error);
+        setError(result.error.message || "Sign-in failed");
+        setIsLoading(false);
+      }
     } catch (err) {
-      console.error("[SignInButton] Sign-in error:", err);
+      console.error("[SignInButton] Exception:", err.message);
       setError(err.message || "Failed to sign in");
       setIsLoading(false);
     }

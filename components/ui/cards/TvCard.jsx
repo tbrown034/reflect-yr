@@ -28,7 +28,7 @@ export default function TvCard({ show }) {
     <li className="h-full">
       <Link href={`/tv/${show.id}`} className="block h-full">
         <div className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 h-full flex flex-col relative">
-          <div className="relative aspect-[2/3] w-full overflow-hidden">
+          <div className="relative aspect-2/3 w-full overflow-hidden">
             <Image
               src={imageError ? "/placeholder-tv.jpg" : posterUrl}
               alt={`${show.name} poster`}
@@ -52,14 +52,14 @@ export default function TvCard({ show }) {
 
           <div className="h-1.5 w-full bg-linear-to-r from-purple-500 via-purple-600 to-blue-600"></div>
 
-          <div className="p-5 flex-grow flex flex-col bg-white dark:bg-gray-800">
+          <div className="p-5 grow flex flex-col bg-white dark:bg-gray-800">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 mb-1">
               {show.name}
             </h3>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
               {year}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 flex-grow">
+            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 grow">
               {show.overview || "No overview available."}
             </p>
           </div>

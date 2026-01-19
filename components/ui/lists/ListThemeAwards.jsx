@@ -161,7 +161,7 @@ export default function ListThemeAwards({
                 className="group bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
               >
                 {/* Poster */}
-                <div className="relative aspect-[2/3]">
+                <div className="relative aspect-2/3">
                   {item.poster_path ? (
                     <Image
                       src={`https://image.tmdb.org/t/p/w300${item.poster_path}`}

@@ -10,7 +10,7 @@ export default function MoviesLoading() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[...Array(20)].map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="aspect-[2/3] bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+            <div className="aspect-2/3 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4" />
             <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2" />
           </div>

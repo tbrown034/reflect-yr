@@ -97,7 +97,7 @@ export default function PublishedListItems({
             {/* Item Info Link */}
             <Link
               href={detailPath}
-              className="flex items-center flex-grow min-w-0 group mr-2 cursor-pointer"
+              className="flex items-center grow min-w-0 group mr-2 cursor-pointer"
               title={`View details for ${title}`}
             >
               <div className="shrink-0 w-10 h-14 relative mr-3 bg-gray-200 dark:bg-gray-600 rounded">
@@ -113,7 +113,7 @@ export default function PublishedListItems({
                   }}
                 />
               </div>
-              <div className="flex-grow min-w-0">
+              <div className="grow min-w-0">
                 <p className="font-medium truncate group-hover:underline">
                   {title}
                 </p>

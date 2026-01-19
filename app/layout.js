@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
         <YearProvider>
           <ListProvider>
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center min-h-[50vh]">

@@ -182,7 +182,7 @@ export default function SavedRecommendationsPage() {
                       )}
                     </div>
 
-                    <div className="flex-grow">
+                    <div className="grow">
                       {/* Title & Year */}
                       <div className="flex justify-between">
                         <Link href={detailPath} className="hover:underline">

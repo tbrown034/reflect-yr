@@ -3,13 +3,17 @@ import { headers } from "next/headers";
 import { UserIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export default async function SignInStatusIcon() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   const isSignedIn = !!session?.user;
 
-  console.log("[SignInStatusIcon] isSignedIn:", isSignedIn);
+  if (isDev) {
+    console.log("[SignInStatusIcon] isSignedIn:", isSignedIn);
+  }
 
   const iconSize = "w-5 h-5";
 

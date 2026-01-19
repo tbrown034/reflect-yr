@@ -3,12 +3,16 @@ import { headers } from "next/headers";
 import { SignInButton } from "@/components/ui/buttons/actions/SignInButton";
 import { SignOut } from "@/components/ui/buttons/actions/SignOutButton";
 
+const isDev = process.env.NODE_ENV === "development";
+
 export default async function Profile() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  console.log("[ProfilePage] Session:", session ? `User: ${session.user?.email}` : "No session");
+  if (isDev) {
+    console.log("[ProfilePage] Session:", session?.user?.email || "none");
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg bg-white dark:bg-gray-900 shadow-md">

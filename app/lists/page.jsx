@@ -258,7 +258,7 @@ export default function MyListsPage() {
               )}
             </div>
 
-            <div className="flex-grow min-w-0">
+            <div className="grow min-w-0">
               <div className="flex items-center">
                 {isRecommendation ? (
                   <SparklesIcon className="shrink-0 h-5 w-5 text-purple-500 mr-1.5" />

@@ -63,7 +63,7 @@ export default function ListThemeMinimalist({
               </span>
 
               {/* Content */}
-              <div className="flex-grow">
+              <div className="grow">
                 <div className="flex items-baseline gap-3">
                   <h3 className="text-xl font-medium text-gray-900 dark:text-white">
                     {item.title || item.name}

@@ -128,7 +128,7 @@ export default function ListThemeFamilyFeud({
                     </div>
 
                     {/* Title */}
-                    <div className="flex-grow">
+                    <div className="grow">
                       <h3 className="font-bold text-lg text-gray-900 dark:text-white">
                         {item.title || item.name}
                       </h3>

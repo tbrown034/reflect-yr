@@ -348,7 +348,7 @@ export default function CreateListPage() {
                           )}
                         </div>
 
-                        <div className="flex-grow min-w-0">
+                        <div className="grow min-w-0">
                           <p className="font-medium truncate">{item.title}</p>
                           <p className="text-xs text-gray-500">{item.year}</p>
                         </div>
@@ -440,7 +440,7 @@ export default function CreateListPage() {
                                   />
                                 )}
                               </div>
-                              <div className="flex-grow text-left min-w-0">
+                              <div className="grow text-left min-w-0">
                                 <p className="font-medium truncate">{movie.title}</p>
                                 <p className="text-xs text-gray-500">
                                   {movie.year}
@@ -503,7 +503,7 @@ export default function CreateListPage() {
                                   />
                                 )}
                               </div>
-                              <div className="flex-grow text-left min-w-0">
+                              <div className="grow text-left min-w-0">
                                 <p className="font-medium truncate">{movie.title}</p>
                                 <p className="text-xs text-gray-500">
                                   {movie.release_date?.split("-")[0]}

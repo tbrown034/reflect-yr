@@ -333,7 +333,7 @@ export default function ComparePage() {
                           )}
                         </div>
 
-                        <div className="flex-grow min-w-0">
+                        <div className="grow min-w-0">
                           <p className="font-medium truncate">{item.title}</p>
                         </div>
 

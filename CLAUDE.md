@@ -184,9 +184,9 @@ See `TODO.md` for full roadmap. Key items:
 
 ## Workspace Context
 
-**Project Name**: reflectyr (renamed from refelectyr-project)
+**Project Name**: reflectyr
 **Location**: `~/Desktop/ActiveProjects/reflectyr`
-**GitHub**: github.com/tbrown034/refelectyr_project (GitHub rename blocked by existing ReflectYr repo)
+**GitHub**: github.com/tbrown034/reflectyr
 
 This project is part of Trevor Brown's ActiveProjects workspace:
 - Workspace docs: `~/Desktop/ActiveProjects/_docs/`

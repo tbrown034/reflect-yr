@@ -67,7 +67,7 @@ export default async function MovieDetailPage({ params }) {
         <div className="md:flex">
           {/* Poster Section */}
           <div className="md:w-1/3 lg:w-1/4">
-            <div className="relative w-full aspect-[2/3] md:rounded-l-xl overflow-hidden">
+            <div className="relative w-full aspect-2/3 md:rounded-l-xl overflow-hidden">
               {movie.poster_path ? (
                 <Image
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}

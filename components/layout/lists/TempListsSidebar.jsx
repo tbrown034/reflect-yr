@@ -362,7 +362,7 @@ export default function TempListsSidebar() {
 
         {/* List content */}
         <div
-          className="flex-grow overflow-y-auto p-4 scroll-smooth"
+          className="grow overflow-y-auto p-4 scroll-smooth"
           id={activeTab === "movies" ? "movies-panel" : "tv-panel"}
           role="tabpanel"
           aria-labelledby={activeTab === "movies" ? "movies-tab" : "tv-tab"}
@@ -421,7 +421,7 @@ export default function TempListsSidebar() {
 
                     {/* Poster thumbnail and title - clickable to go to detail */}
                     <div
-                      className="flex flex-grow items-center min-w-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors"
+                      className="flex grow items-center min-w-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition-colors"
                       onClick={() => handleViewDetails(item)}
                     >
                       <div className="shrink-0 w-10 h-14 relative mr-3">
@@ -435,7 +435,7 @@ export default function TempListsSidebar() {
                       </div>
 
                       {/* Title and year */}
-                      <div className="flex-grow min-w-0">
+                      <div className="grow min-w-0">
                         <p className="font-medium truncate hover:underline">
                           {title}
                         </p>

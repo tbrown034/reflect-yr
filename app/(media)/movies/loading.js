@@ -12,7 +12,7 @@ export default function MoviesLoading() {
             key={i}
             className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden h-96 animate-pulse"
           >
-            <div className="relative aspect-[2/3] w-full bg-gray-300 dark:bg-gray-600"></div>
+            <div className="relative aspect-2/3 w-full bg-gray-300 dark:bg-gray-600"></div>
             <div className="h-1.5 w-full bg-gray-300 dark:bg-gray-600"></div>
             <div className="p-5">
               <div className="h-6 w-3/4 bg-gray-300 dark:bg-gray-600 rounded mb-3"></div>
