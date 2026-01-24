@@ -8,8 +8,11 @@ export const getMovies = async ({
   language = "en-US",
   limit = 20, // Default to 20 movies
 } = {}) => {
-  // Match the variable name in your .env.local file
   const token = process.env.TMDB_API_TOKEN;
+  if (!token) {
+    console.error("[TMDB] TMDB_API_TOKEN is not set!");
+    return [];
+  }
 
   const queryParams = new URLSearchParams({
     include_adult: includeAdult,
@@ -37,10 +40,13 @@ export const getMovies = async ({
     });
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[TMDB] Movies API error:", response.status, errorData);
       throw new Error(`Failed to fetch movies: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`[TMDB] Fetched ${data.results?.length || 0} movies`);
     return data.results.slice(0, limit); // Return top movies
   } catch (error) {
     console.error("Error fetching movies:", error);
@@ -55,8 +61,11 @@ export const getTvShows = async ({
   language = "en-US",
   limit = 20, // Default to 20 TV shows
 } = {}) => {
-  // Match the variable name in your .env.local file
   const token = process.env.TMDB_API_TOKEN;
+  if (!token) {
+    console.error("[TMDB] TMDB_API_TOKEN is not set!");
+    return [];
+  }
 
   const queryParams = new URLSearchParams({
     include_adult: includeAdult,
@@ -83,10 +92,13 @@ export const getTvShows = async ({
     });
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[TMDB] TV API error:", response.status, errorData);
       throw new Error(`Failed to fetch TV shows: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`[TMDB] Fetched ${data.results?.length || 0} TV shows`);
     return data.results.slice(0, limit); // Return top TV shows
   } catch (error) {
     console.error("Error fetching TV shows:", error);

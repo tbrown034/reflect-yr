@@ -8,8 +8,26 @@ const About = () => {
           <p className="text-lg">
             Sortid is a sleek, user-friendly platform that allows you to
             curate and share your favorite entertainment picks of the year.
-            Whether it’s movies, music, or TV shows, Sortid helps you create
+            Whether it's movies, music, or TV shows, Sortid helps you create
             and display your lists beautifully and share them with ease.
+          </p>
+        </section>
+
+        {/* Why Sortid? */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-3">Why Sortid?</h2>
+          <p className="text-lg mb-4">
+            The name comes from code. In programming,{" "}
+            <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+              sort(id)
+            </code>{" "}
+            is a function call that takes an identifier and puts things in order.
+            That's exactly what this app does: it takes your taste and sorts it.
+          </p>
+          <p className="text-lg">
+            <strong>Sortid</strong> is the company. <strong>sort(id)</strong> is the mark.
+            Code-native branding for a tool built by developers, for everyone who
+            loves making lists.
           </p>
         </section>
 
