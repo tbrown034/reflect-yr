@@ -3,10 +3,11 @@
 import { use, useState, useCallback, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ListContext } from "@/library/contexts/ListContext";
-import { searchMedia } from "@/app/actions/search";
+import { searchMedia, searchByCategory } from "@/app/actions/search";
 import { ListThemeRenderer } from "@/components/ui/lists";
 import ThemeSelector from "@/components/ui/ThemeSelector";
 import LetterboxdImport from "@/components/ui/LetterboxdImport";
+import CategorySelector from "@/components/ui/inputs/CategorySelector";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
@@ -32,6 +33,19 @@ const LOG_PREFIX = "[CreateListPage]";
 // Current year for "Best of" default
 const CURRENT_YEAR = new Date().getFullYear();
 
+// Helper to get image URL for different providers
+function getItemImageUrl(item) {
+  // TMDB poster path
+  if (item.poster_path) {
+    return `https://image.tmdb.org/t/p/w200${item.poster_path}`;
+  }
+  // Unified item shape from providers
+  if (item.image) {
+    return item.image;
+  }
+  return null;
+}
+
 export default function CreateListPage() {
   const router = useRouter();
 
@@ -43,9 +57,11 @@ export default function CreateListPage() {
     getWatchedPoolByYear,
     isInitialized,
     LIST_THEMES,
+    CATEGORIES,
   } = use(ListContext);
 
   // Form state
+  const [category, setCategory] = useState("movie");
   const [title, setTitle] = useState(`My Best Movies of ${CURRENT_YEAR}`);
   const [description, setDescription] = useState("");
   const [year, setYear] = useState(CURRENT_YEAR);
@@ -60,14 +76,28 @@ export default function CreateListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [activeTab, setActiveTab] = useState("pool"); // pool, search
+  const [activeTab, setActiveTab] = useState("search"); // pool, search - default to search for new categories
 
-  console.log(`${LOG_PREFIX} Rendering create page, items: ${selectedItems.length}`);
+  // Update title when category changes
+  useEffect(() => {
+    const categoryName = CATEGORIES[category]?.name || "Items";
+    setTitle(`My Best ${categoryName} of ${year}`);
+    setSelectedItems([]); // Clear items when switching categories
+    setSearchResults([]); // Clear search results
+    setSearchQuery(""); // Clear search query
+  }, [category, year, CATEGORIES]);
 
-  // Get movies from pool filtered by year
-  const poolMovies = getWatchedPoolByYear("movie", year);
+  console.log(`${LOG_PREFIX} Rendering create page, category: ${category}, items: ${selectedItems.length}`);
 
-  // Search TMDB using Server Action
+  // Get items from pool filtered by year (only for movie/tv categories that support pool)
+  const poolItems = category === "movie" || category === "tv"
+    ? getWatchedPoolByYear(category, year)
+    : [];
+
+  // Check if this category supports the watched pool (Letterboxd import)
+  const supportsPool = category === "movie" || category === "tv";
+
+  // Search using unified provider system
   const handleSearch = useCallback(async (query) => {
     if (!query || query.length < 2) {
       setSearchResults([]);
@@ -75,10 +105,15 @@ export default function CreateListPage() {
     }
 
     setIsSearching(true);
-    console.log(`${LOG_PREFIX} Searching TMDB for: ${query}`);
+    console.log(`${LOG_PREFIX} Searching ${category} for: ${query}`);
 
     try {
-      const { results, error } = await searchMedia(query, "movie", year);
+      // Use the new unified search for all categories
+      const { results, error } = await searchByCategory(query, category, {
+        limit: 15,
+        year: CATEGORIES[category]?.hasYear ? year : undefined,
+      });
+
       if (error) {
         console.error(`${LOG_PREFIX} Search error:`, error);
         setSearchResults([]);
@@ -91,7 +126,7 @@ export default function CreateListPage() {
     }
 
     setIsSearching(false);
-  }, [year]);
+  }, [category, year, CATEGORIES]);
 
   // Debounced search
   useEffect(() => {
@@ -104,27 +139,39 @@ export default function CreateListPage() {
     return () => clearTimeout(timer);
   }, [searchQuery, handleSearch]);
 
-  // Add item to list
+  // Add item to list (supports both legacy TMDB and new unified item shapes)
   const addItem = useCallback((item) => {
     if (selectedItems.some((i) => i.id === item.id)) {
       console.log(`${LOG_PREFIX} Item already in list: ${item.id}`);
       return;
     }
 
+    // Normalize to unified shape
     const newItem = {
+      // Core fields
       id: item.id,
-      title: item.title || item.name,
-      poster_path: item.poster_path,
+      externalId: item.externalId || item.id,
+      category: item.category || category,
+      provider: item.provider,
+      // Display fields (support both old and new shapes)
+      name: item.name || item.title,
+      title: item.title || item.name, // backwards compat
+      image: item.image || (item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null),
+      poster_path: item.poster_path, // backwards compat
+      year: item.year || (item.release_date ? parseInt(item.release_date.split("-")[0]) : null),
+      subtitle: item.subtitle,
+      metadata: item.metadata || {},
+      // Legacy TMDB fields for backwards compat
       release_date: item.release_date,
       vote_average: item.vote_average,
-      year: item.year || (item.release_date ? parseInt(item.release_date.split("-")[0]) : null),
-      userRating: item.rating || null,
+      // User data
+      userRating: item.rating || item.userRating || null,
       comment: "",
     };
 
     setSelectedItems((prev) => [...prev, newItem]);
-    console.log(`${LOG_PREFIX} Added item: ${newItem.title}`);
-  }, [selectedItems]);
+    console.log(`${LOG_PREFIX} Added ${category} item: ${newItem.name}`);
+  }, [selectedItems, category]);
 
   // Remove item from list
   const removeItem = useCallback((itemId) => {
@@ -159,14 +206,16 @@ export default function CreateListPage() {
   // Create and publish list
   const handlePublish = useCallback(() => {
     if (selectedItems.length === 0) {
-      alert("Please add some movies to your list first!");
+      const categoryName = CATEGORIES[category]?.name || "items";
+      alert(`Please add some ${categoryName.toLowerCase()} to your list first!`);
       return;
     }
 
-    console.log(`${LOG_PREFIX} Publishing list with ${selectedItems.length} items`);
+    console.log(`${LOG_PREFIX} Publishing ${category} list with ${selectedItems.length} items`);
 
     const listId = createEnhancedList({
-      type: "movie",
+      type: category,
+      category: category,
       items: selectedItems,
       title,
       description,
@@ -177,9 +226,10 @@ export default function CreateListPage() {
     });
 
     if (listId) {
-      router.push(`/lists/movies/publish/${listId}`);
+      // Route based on category
+      router.push(`/lists/${category}/publish/${listId}`);
     }
-  }, [selectedItems, title, description, theme, accentColor, year, createEnhancedList, router]);
+  }, [selectedItems, title, description, theme, accentColor, year, category, createEnhancedList, router, CATEGORIES]);
 
   // Build preview list object
   const previewList = {
@@ -188,6 +238,8 @@ export default function CreateListPage() {
     theme,
     accentColor,
     year,
+    type: category,
+    category: category,
     items: selectedItems.map((item, index) => ({
       ...item,
       rank: index + 1,
@@ -236,6 +288,16 @@ export default function CreateListPage() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left Column - List Builder */}
           <div className="space-y-6">
+            {/* Category Selection */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-lg font-semibold mb-4">What are you ranking?</h2>
+              <CategorySelector
+                selectedCategory={category}
+                onCategoryChange={setCategory}
+                compact={true}
+              />
+            </div>
+
             {/* List Details */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -253,7 +315,7 @@ export default function CreateListPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                    placeholder="My Best Movies of 2024"
+                    placeholder={`My Best ${CATEGORIES[category]?.name || "Items"} of ${year}`}
                   />
                 </div>
 
@@ -270,22 +332,25 @@ export default function CreateListPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Year
-                  </label>
-                  <select
-                    value={year}
-                    onChange={(e) => setYear(parseInt(e.target.value))}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-                  >
-                    {[...Array(10)].map((_, i) => (
-                      <option key={i} value={CURRENT_YEAR - i}>
-                        {CURRENT_YEAR - i}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Only show year selector for categories that support it */}
+                {CATEGORIES[category]?.hasYear && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Year
+                    </label>
+                    <select
+                      value={year}
+                      onChange={(e) => setYear(parseInt(e.target.value))}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+                    >
+                      {[...Array(10)].map((_, i) => (
+                        <option key={i} value={CURRENT_YEAR - i}>
+                          {CURRENT_YEAR - i}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -311,9 +376,9 @@ export default function CreateListPage() {
               {selectedItems.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <FilmIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No movies added yet</p>
+                  <p>No {CATEGORIES[category]?.name?.toLowerCase() || "items"} added yet</p>
                   <p className="text-sm mt-1">
-                    Add movies from your watched pool or search TMDB
+                    Search and add {CATEGORIES[category]?.name?.toLowerCase() || "items"} to your list
                   </p>
                 </div>
               ) : (
@@ -323,65 +388,72 @@ export default function CreateListPage() {
                   onReorder={setSelectedItems}
                   className="space-y-2"
                 >
-                  {selectedItems.map((item, index) => (
-                    <Reorder.Item
-                      key={item.id}
-                      value={item}
-                      className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 cursor-grab active:cursor-grabbing"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-gray-400 w-6">
-                          {index + 1}
-                        </span>
+                  {selectedItems.map((item, index) => {
+                    const imageUrl = getItemImageUrl(item);
+                    return (
+                      <Reorder.Item
+                        key={item.id}
+                        value={item}
+                        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 cursor-grab active:cursor-grabbing"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-gray-400 w-6">
+                            {index + 1}
+                          </span>
 
-                        <div className="w-10 h-14 relative rounded overflow-hidden shrink-0">
-                          {item.poster_path ? (
-                            <Image
-                              src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                              alt={item.title}
-                              fill
-                              sizes="40px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-300 dark:bg-gray-600" />
-                          )}
+                          <div className="w-10 h-14 relative rounded overflow-hidden shrink-0 bg-gray-300 dark:bg-gray-600">
+                            {imageUrl && (
+                              <Image
+                                src={imageUrl}
+                                alt={item.name || item.title}
+                                fill
+                                sizes="40px"
+                                className="object-cover"
+                              />
+                            )}
+                          </div>
+
+                          <div className="grow min-w-0">
+                            <p className="font-medium truncate">{item.name || item.title}</p>
+                            <p className="text-xs text-gray-500">
+                              {item.year && <span>{item.year}</span>}
+                              {item.subtitle && <span> {item.year ? "•" : ""} {item.subtitle}</span>}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                          >
+                            <XMarkIcon className="h-5 w-5" />
+                          </button>
                         </div>
-
-                        <div className="grow min-w-0">
-                          <p className="font-medium truncate">{item.title}</p>
-                          <p className="text-xs text-gray-500">{item.year}</p>
-                        </div>
-
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                        >
-                          <XMarkIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </Reorder.Item>
-                  ))}
+                      </Reorder.Item>
+                    );
+                  })}
                 </Reorder.Group>
               )}
             </div>
           </div>
 
-          {/* Right Column - Add Movies */}
+          {/* Right Column - Add Items */}
           <div className="space-y-6">
             {/* Source Tabs */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
               <div className="flex border-b border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={() => setActiveTab("pool")}
-                  className={`flex-1 px-4 py-3 text-sm font-medium ${
-                    activeTab === "pool"
-                      ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  Your Watched ({poolMovies.length})
-                </button>
+                {/* Only show Pool tab for movie/tv */}
+                {supportsPool && (
+                  <button
+                    onClick={() => setActiveTab("pool")}
+                    className={`flex-1 px-4 py-3 text-sm font-medium ${
+                      activeTab === "pool"
+                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    Your Watched ({poolItems.length})
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab("search")}
                   className={`flex-1 px-4 py-3 text-sm font-medium ${
@@ -390,38 +462,41 @@ export default function CreateListPage() {
                       : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   }`}
                 >
-                  Search TMDB
+                  Search {CATEGORIES[category]?.name || "Items"}
                 </button>
               </div>
 
               <div className="p-4">
-                {activeTab === "pool" ? (
+                {activeTab === "pool" && supportsPool ? (
                   <>
-                    {/* Import Button */}
-                    <button
-                      onClick={() => setShowImport(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 mb-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 transition-colors"
-                    >
-                      <ArrowUpTrayIcon className="h-5 w-5" />
-                      Import from Letterboxd
-                    </button>
+                    {/* Import Button - only for movies */}
+                    {category === "movie" && (
+                      <button
+                        onClick={() => setShowImport(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 mb-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        <ArrowUpTrayIcon className="h-5 w-5" />
+                        Import from Letterboxd
+                      </button>
+                    )}
 
-                    {/* Pool Movies */}
-                    {poolMovies.length === 0 ? (
+                    {/* Pool Items */}
+                    {poolItems.length === 0 ? (
                       <div className="text-center py-8 text-gray-500">
-                        <p>No movies in your pool for {year}</p>
+                        <p>No {CATEGORIES[category]?.name?.toLowerCase() || "items"} in your pool for {year}</p>
                         <p className="text-sm mt-1">
-                          Import from Letterboxd or search TMDB
+                          {category === "movie" ? "Import from Letterboxd or search" : "Search to add items"}
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                        {poolMovies.map((movie) => {
-                          const isSelected = selectedItems.some((i) => i.id === movie.id);
+                        {poolItems.map((item) => {
+                          const isSelected = selectedItems.some((i) => i.id === item.id);
+                          const imageUrl = getItemImageUrl(item);
                           return (
                             <button
-                              key={movie.id}
-                              onClick={() => !isSelected && addItem(movie)}
+                              key={item.id}
+                              onClick={() => !isSelected && addItem(item)}
                               disabled={isSelected}
                               className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
                                 isSelected
@@ -430,10 +505,10 @@ export default function CreateListPage() {
                               }`}
                             >
                               <div className="w-10 h-14 relative rounded overflow-hidden shrink-0 bg-gray-200 dark:bg-gray-600">
-                                {movie.poster_path && (
+                                {imageUrl && (
                                   <Image
-                                    src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
-                                    alt={movie.title}
+                                    src={imageUrl}
+                                    alt={item.title || item.name}
                                     fill
                                     sizes="40px"
                                     className="object-cover"
@@ -441,10 +516,10 @@ export default function CreateListPage() {
                                 )}
                               </div>
                               <div className="grow text-left min-w-0">
-                                <p className="font-medium truncate">{movie.title}</p>
+                                <p className="font-medium truncate">{item.title || item.name}</p>
                                 <p className="text-xs text-gray-500">
-                                  {movie.year}
-                                  {movie.rating && ` • ${movie.rating}★`}
+                                  {item.year}
+                                  {item.rating && ` • ${item.rating}★`}
                                 </p>
                               </div>
                               {isSelected ? (
@@ -467,7 +542,7 @@ export default function CreateListPage() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search for a movie..."
+                        placeholder={`Search for ${CATEGORIES[category]?.name?.toLowerCase() || "items"}...`}
                         className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -479,12 +554,13 @@ export default function CreateListPage() {
                       </div>
                     ) : searchResults.length > 0 ? (
                       <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                        {searchResults.map((movie) => {
-                          const isSelected = selectedItems.some((i) => i.id === movie.id);
+                        {searchResults.map((item) => {
+                          const isSelected = selectedItems.some((i) => i.id === item.id);
+                          const imageUrl = getItemImageUrl(item);
                           return (
                             <button
-                              key={movie.id}
-                              onClick={() => !isSelected && addItem(movie)}
+                              key={item.id}
+                              onClick={() => !isSelected && addItem(item)}
                               disabled={isSelected}
                               className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
                                 isSelected
@@ -493,10 +569,10 @@ export default function CreateListPage() {
                               }`}
                             >
                               <div className="w-10 h-14 relative rounded overflow-hidden shrink-0 bg-gray-200 dark:bg-gray-600">
-                                {movie.poster_path && (
+                                {imageUrl && (
                                   <Image
-                                    src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
-                                    alt={movie.title}
+                                    src={imageUrl}
+                                    alt={item.name || item.title}
                                     fill
                                     sizes="40px"
                                     className="object-cover"
@@ -504,10 +580,10 @@ export default function CreateListPage() {
                                 )}
                               </div>
                               <div className="grow text-left min-w-0">
-                                <p className="font-medium truncate">{movie.title}</p>
+                                <p className="font-medium truncate">{item.name || item.title}</p>
                                 <p className="text-xs text-gray-500">
-                                  {movie.release_date?.split("-")[0]}
-                                  {movie.vote_average && ` • ${movie.vote_average.toFixed(1)}`}
+                                  {item.year && <span>{item.year}</span>}
+                                  {item.subtitle && <span> {item.year ? "•" : ""} {item.subtitle}</span>}
                                 </p>
                               </div>
                               {isSelected ? (
@@ -525,7 +601,7 @@ export default function CreateListPage() {
                       </div>
                     ) : (
                       <div className="text-center py-8 text-gray-500">
-                        Start typing to search
+                        Start typing to search for {CATEGORIES[category]?.name?.toLowerCase() || "items"}
                       </div>
                     )}
                   </>

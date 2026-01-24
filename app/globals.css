@@ -20,12 +20,12 @@
 }
 
 .animate-scrollLeft {
-  animation: scrollLeft 60s linear infinite; /* Slowed from 30s to 60s */
+  animation: scrollLeft 240s linear infinite;
   width: max-content;
 }
 
 .animate-scrollRight {
-  animation: scrollRight 60s linear infinite; /* Slowed from 30s to 60s */
+  animation: scrollRight 240s linear infinite;
   width: max-content;
 }
 

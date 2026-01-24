@@ -4,6 +4,7 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import { MAX_LIST_SIZE } from "@/library/utils/defaults";
 import { generateListId, generateShareCode } from "@/library/utils/listUtils";
+import { CATEGORIES, getAllCategories } from "@/library/api/providers/types";
 
 const LOG_PREFIX = "[ListContext]";
 
@@ -11,6 +12,7 @@ const LOG_PREFIX = "[ListContext]";
 const STORAGE_KEYS = {
   MOVIE_LIST: "userMovieList",
   TV_LIST: "userTvList",
+  TEMP_LISTS: "tempLists", // New unified temp lists
   PUBLISHED_LISTS: "publishedLists",
   RECOMMENDATION_LISTS: "recommendationLists",
   WATCHED_POOL: "watchedPool",
@@ -54,12 +56,17 @@ export const ListContext = createContext({
   // State
   movieList: [],
   tvList: [],
+  tempLists: {}, // New: { category: [items] }
   publishedLists: {},
   recommendationLists: {},
   watchedPool: { movies: [], tv: [] },
   isInitialized: false,
 
-  // Temporary list operations
+  // Category utilities
+  CATEGORIES,
+  getAllCategories: () => [],
+
+  // Temporary list operations (legacy movie/tv)
   addToList: () => false,
   removeFromList: () => {},
   moveItemUp: () => {},
@@ -67,6 +74,14 @@ export const ListContext = createContext({
   moveItem: () => {},
   clearList: () => {},
   isInList: () => false,
+
+  // New multi-category temp list operations
+  addToTempList: () => false,
+  removeFromTempList: () => {},
+  getTempList: () => [],
+  clearTempList: () => {},
+  isInTempList: () => false,
+  moveTempItem: () => {},
 
   // Published list operations
   publishList: () => null,
@@ -112,6 +127,7 @@ export function ListProvider({ children }) {
   // State for lists
   const [movieList, setMovieList] = useState([]);
   const [tvList, setTvList] = useState([]);
+  const [tempLists, setTempLists] = useState({}); // New: { category: [items] }
   const [publishedLists, setPublishedLists] = useState({});
   const [recommendationLists, setRecommendationLists] = useState({});
   const [watchedPool, setWatchedPool] = useState({ movies: [], tv: [] });
@@ -123,12 +139,14 @@ export function ListProvider({ children }) {
     try {
       const storedMovieList = localStorage.getItem(STORAGE_KEYS.MOVIE_LIST);
       const storedTvList = localStorage.getItem(STORAGE_KEYS.TV_LIST);
+      const storedTempLists = localStorage.getItem(STORAGE_KEYS.TEMP_LISTS);
       const storedPublishedLists = localStorage.getItem(STORAGE_KEYS.PUBLISHED_LISTS);
       const storedRecommendationLists = localStorage.getItem(STORAGE_KEYS.RECOMMENDATION_LISTS);
       const storedWatchedPool = localStorage.getItem(STORAGE_KEYS.WATCHED_POOL);
 
       if (storedMovieList) setMovieList(JSON.parse(storedMovieList));
       if (storedTvList) setTvList(JSON.parse(storedTvList));
+      if (storedTempLists) setTempLists(JSON.parse(storedTempLists));
       if (storedPublishedLists) setPublishedLists(JSON.parse(storedPublishedLists));
       if (storedRecommendationLists) setRecommendationLists(JSON.parse(storedRecommendationLists));
       if (storedWatchedPool) setWatchedPool(JSON.parse(storedWatchedPool));
@@ -136,6 +154,7 @@ export function ListProvider({ children }) {
       console.log(`${LOG_PREFIX} Loaded from localStorage:`, {
         movieList: storedMovieList ? JSON.parse(storedMovieList).length : 0,
         tvList: storedTvList ? JSON.parse(storedTvList).length : 0,
+        tempLists: storedTempLists ? Object.keys(JSON.parse(storedTempLists)).length : 0,
         publishedLists: storedPublishedLists ? Object.keys(JSON.parse(storedPublishedLists)).length : 0,
         watchedPool: storedWatchedPool ? JSON.parse(storedWatchedPool).movies?.length : 0,
       });
@@ -168,6 +187,18 @@ export function ListProvider({ children }) {
       console.error(`${LOG_PREFIX} Error saving TV list:`, error);
     }
   }, [tvList, isInitialized]);
+
+  // Save temp lists to localStorage (new multi-category)
+  useEffect(() => {
+    if (!isInitialized) return;
+    try {
+      localStorage.setItem(STORAGE_KEYS.TEMP_LISTS, JSON.stringify(tempLists));
+      const totalItems = Object.values(tempLists).reduce((sum, list) => sum + list.length, 0);
+      console.log(`${LOG_PREFIX} Saved tempLists (${Object.keys(tempLists).length} categories, ${totalItems} items)`);
+    } catch (error) {
+      console.error(`${LOG_PREFIX} Error saving temp lists:`, error);
+    }
+  }, [tempLists, isInitialized]);
 
   // Save published lists to localStorage
   useEffect(() => {
@@ -322,6 +353,104 @@ export function ListProvider({ children }) {
   }, []);
 
   // ========================================
+  // Multi-Category Temp List Operations (New)
+  // ========================================
+
+  const getTempList = useCallback((category) => {
+    return tempLists[category] || [];
+  }, [tempLists]);
+
+  const isInTempList = useCallback((category, itemId) => {
+    const list = tempLists[category] || [];
+    return list.some((item) => item.id === itemId);
+  }, [tempLists]);
+
+  const addToTempList = useCallback((category, item) => {
+    if (!item || !item.id) {
+      console.warn(`${LOG_PREFIX} addToTempList: Invalid item`);
+      return false;
+    }
+
+    if (!CATEGORIES[category]) {
+      console.warn(`${LOG_PREFIX} addToTempList: Invalid category ${category}`);
+      return false;
+    }
+
+    const list = tempLists[category] || [];
+
+    if (list.some((listItem) => listItem.id === item.id)) {
+      console.log(`${LOG_PREFIX} Item already in ${category} list: ${item.id}`);
+      return false;
+    }
+
+    if (list.length >= MAX_LIST_SIZE) {
+      console.warn(`${LOG_PREFIX} List full (max ${MAX_LIST_SIZE})`);
+      return false;
+    }
+
+    // Store normalized item shape
+    const essentialData = {
+      id: item.id,
+      externalId: item.externalId || item.id,
+      category: item.category || category,
+      provider: item.provider,
+      name: item.name || item.title,
+      image: item.image || item.poster_path,
+      year: item.year,
+      subtitle: item.subtitle,
+      metadata: item.metadata || {},
+      addedAt: new Date().toISOString(),
+      userRating: item.userRating || null,
+      comment: item.comment || "",
+    };
+
+    setTempLists((prev) => ({
+      ...prev,
+      [category]: [...(prev[category] || []), essentialData],
+    }));
+
+    console.log(`${LOG_PREFIX} Added to ${category} list: ${item.name || item.title}`);
+    return true;
+  }, [tempLists]);
+
+  const removeFromTempList = useCallback((category, itemId) => {
+    setTempLists((prev) => ({
+      ...prev,
+      [category]: (prev[category] || []).filter((item) => item.id !== itemId),
+    }));
+    console.log(`${LOG_PREFIX} Removed from ${category} list: ${itemId}`);
+  }, []);
+
+  const moveTempItem = useCallback((category, itemId, newIndex) => {
+    const list = tempLists[category] || [];
+    const currentIndex = list.findIndex((item) => item.id === itemId);
+
+    if (currentIndex === -1 || newIndex < 0 || newIndex >= list.length) return;
+
+    const newList = [...list];
+    const [removed] = newList.splice(currentIndex, 1);
+    newList.splice(newIndex, 0, removed);
+
+    setTempLists((prev) => ({
+      ...prev,
+      [category]: newList,
+    }));
+  }, [tempLists]);
+
+  const clearTempList = useCallback((category) => {
+    if (category) {
+      setTempLists((prev) => ({
+        ...prev,
+        [category]: [],
+      }));
+      console.log(`${LOG_PREFIX} Cleared ${category} temp list`);
+    } else {
+      setTempLists({});
+      console.log(`${LOG_PREFIX} Cleared all temp lists`);
+    }
+  }, []);
+
+  // ========================================
   // Published List Operations
   // ========================================
 
@@ -371,10 +500,11 @@ export function ListProvider({ children }) {
     return listId;
   }, [movieList, tvList, hasReachedTotalListLimit, clearList]);
 
-  // Enhanced list creation with all new features
+  // Enhanced list creation with all new features (supports all categories)
   const createEnhancedList = useCallback((options) => {
     const {
-      type = "movie",
+      type = "movie", // Can be any category: movie, tv, book, athlete, anime, podcast, custom, etc.
+      category, // Alias for type (new multi-category support)
       items = [],
       title = "",
       description = "",
@@ -383,6 +513,9 @@ export function ListProvider({ children }) {
       year = new Date().getFullYear(),
       isPublic = true,
     } = options;
+
+    // Support both 'type' (legacy) and 'category' (new)
+    const listCategory = category || type;
 
     if (items.length === 0) {
       console.warn(`${LOG_PREFIX} Cannot create empty list`);
@@ -397,15 +530,30 @@ export function ListProvider({ children }) {
     const listId = generateListId();
     const shareCode = generateShareCode();
 
+    // Get category display name for default title
+    const categoryConfig = CATEGORIES[listCategory];
+    const categoryName = categoryConfig?.name || listCategory;
+
+    // Normalize items to unified shape
     const enhancedItems = items.map((item, index) => ({
+      // Core fields (unified)
       id: item.id,
+      externalId: item.externalId || item.id,
+      category: item.category || listCategory,
+      provider: item.provider,
+      name: item.name || item.title,
+      image: item.image || item.poster_path,
+      year: item.year,
+      subtitle: item.subtitle,
+      metadata: item.metadata || {},
+      // Legacy TMDB fields (backwards compatibility)
       title: item.title,
-      name: item.name,
-      poster_path: item.poster_path,
+      poster_path: item.poster_path || item.image,
       release_date: item.release_date,
       first_air_date: item.first_air_date,
       vote_average: item.vote_average,
       overview: item.overview?.substring(0, 300),
+      // List-specific fields
       rank: index + 1,
       userRating: item.userRating || null,
       comment: item.comment || "",
@@ -413,9 +561,10 @@ export function ListProvider({ children }) {
 
     const newList = {
       id: listId,
-      type,
+      type: listCategory,
+      category: listCategory, // New field for clarity
       items: enhancedItems,
-      title: title || `My Top ${type === "movie" ? "Movies" : "TV Shows"} ${year}`,
+      title: title || `My Top ${categoryName} ${year}`,
       description,
       theme,
       accentColor,
@@ -426,7 +575,7 @@ export function ListProvider({ children }) {
     };
 
     setPublishedLists((prev) => ({ ...prev, [listId]: newList }));
-    console.log(`${LOG_PREFIX} Created enhanced list: ${listId}`, { theme, year, itemCount: items.length });
+    console.log(`${LOG_PREFIX} Created enhanced list: ${listId}`, { category: listCategory, theme, year, itemCount: items.length });
 
     return listId;
   }, [hasReachedTotalListLimit]);
@@ -759,12 +908,17 @@ export function ListProvider({ children }) {
         // State
         movieList,
         tvList,
+        tempLists, // New: multi-category temp lists
         publishedLists,
         recommendationLists,
         watchedPool,
         isInitialized,
 
-        // Temporary list operations
+        // Category utilities
+        CATEGORIES,
+        getAllCategories,
+
+        // Temporary list operations (legacy movie/tv)
         addToList,
         removeFromList,
         moveItemUp,
@@ -772,6 +926,14 @@ export function ListProvider({ children }) {
         moveItem,
         clearList,
         isInList,
+
+        // Multi-category temp list operations (new)
+        addToTempList,
+        removeFromTempList,
+        getTempList,
+        clearTempList,
+        isInTempList,
+        moveTempItem,
 
         // Published list operations
         publishList,
