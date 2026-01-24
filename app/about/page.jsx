@@ -2,13 +2,13 @@ const About = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <div className="max-w-3xl w-full text-center space-y-8">
-        {/* About ReflectYr */}
+        {/* About Sortid */}
         <section>
-          <h1 className="text-4xl mb-4">About ReflectYr</h1>
+          <h1 className="text-4xl mb-4">About Sortid</h1>
           <p className="text-lg">
-            ReflectYr is a sleek, user-friendly platform that allows you to
+            Sortid is a sleek, user-friendly platform that allows you to
             curate and share your favorite entertainment picks of the year.
-            Whether it’s movies, music, or TV shows, ReflectYr helps you create
+            Whether it’s movies, music, or TV shows, Sortid helps you create
             and display your lists beautifully and share them with ease.
           </p>
         </section>
@@ -17,7 +17,7 @@ const About = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-3">Privacy Policy</h2>
           <p className="text-lg">
-            Your privacy matters to us. ReflectYr does not sell or share your
+            Your privacy matters to us. Sortid does not sell or share your
             data with third parties. Future authentication features will ensure
             secure account management, and all personal information will be
             handled responsibly.
@@ -28,7 +28,7 @@ const About = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-3">Terms of Service</h2>
           <p className="text-lg">
-            By using ReflectYr, you agree to abide by our community guidelines.
+            By using Sortid, you agree to abide by our community guidelines.
             Users are expected to share appropriate content and respect
             copyright laws. Future authentication features will include
             account-specific terms.
@@ -39,7 +39,7 @@ const About = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-3">About the Developer</h2>
           <p className="text-lg">
-            ReflectYr is built by Trevor Brown, a web developer passionate about
+            Sortid is built by Trevor Brown, a web developer passionate about
             clean UI/UX, performance optimization, and seamless user
             experiences. The project is a showcase of modern web technologies
             and intuitive design.
@@ -50,7 +50,7 @@ const About = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-3">Tech Stack</h2>
           <p className="text-lg">
-            ReflectYr is built using the latest web technologies for speed,
+            Sortid is built using the latest web technologies for speed,
             scalability, and ease of use:
           </p>
           <ul className="text-lg text-left inline-block">
@@ -90,13 +90,13 @@ const About = () => {
           </p>
           <p className="text-lg font-medium">
             🐦 Twitter:{" "}
-            <a href="https://twitter.com/yourhandle" target="_blank">
+            <a href="https://twitter.com/yourhandle" target="_blank" rel="noreferrer">
               @yourhandle
             </a>
           </p>
           <p className="text-lg font-medium">
             💼 GitHub:{" "}
-            <a href="https://github.com/tbrown034" target="_blank">
+            <a href="https://github.com/tbrown034" target="_blank" rel="noreferrer">
               github.com/tbrown034
             </a>
           </p>

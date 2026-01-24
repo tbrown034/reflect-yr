@@ -53,7 +53,7 @@ export default async function Profile() {
             </svg>
           </div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Welcome to ReflectYr
+            Welcome to Sortid
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
             Sign in to save your lists and access them from any device.

@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${movie.title} (${
       movie.release_date?.substring(0, 4) || "Unknown"
-    }) | ReflectYr`,
+    }) | Sortid`,
     description: movie.overview || "No description available",
   };
 }

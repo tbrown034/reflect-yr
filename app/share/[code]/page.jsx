@@ -126,7 +126,7 @@ export default function SharePage() {
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeftIcon className="h-5 w-5" />
-            <span className="hidden sm:inline">Back to ReflectYr</span>
+            <span className="hidden sm:inline">Back to Sortid</span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -176,7 +176,7 @@ export default function SharePage() {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-            Created with ReflectYr
+            Created with Sortid
           </p>
           <Link
             href="/"

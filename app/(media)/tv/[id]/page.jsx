@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${show.name} (${
       show.first_air_date?.substring(0, 4) || "Unknown"
-    }) | ReflectYr`,
+    }) | Sortid`,
     description: show.overview || "No description available",
   };
 }

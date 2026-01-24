@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         {/* Branding */}
         <p className="text-sm">
-          &copy; {new Date().getFullYear()} ReflectYr. All rights reserved.
+          &copy; {new Date().getFullYear()} Sortid. All rights reserved.
         </p>
 
         {/* Footer Links - All direct to About */}

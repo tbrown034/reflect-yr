@@ -97,7 +97,7 @@ export default function ListThemeMinimalist({
       {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
         <p className="text-sm text-gray-400 dark:text-gray-500">
-          Created with ReflectYr
+          Created with Sortid
         </p>
       </footer>
     </div>

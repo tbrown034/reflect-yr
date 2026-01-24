@@ -1,11 +1,15 @@
 // components/layout/header/HeaderBranding.jsx
-import { EyeIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 
 const HeaderBranding = () => (
-  <Link href="/" className="flex gap-2 items-center p-2 rounded-lg">
-    <h1 className="text-xl font-bold hover:underline">ReflectYr</h1>
-    <EyeIcon className="w-6 h-6 text-gray-900 dark:text-white" />
+  <Link
+    href="/"
+    className="flex items-center p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+    aria-label="Sortid home"
+  >
+    <span className="font-mono text-xl tracking-tight text-slate-900 dark:text-white">
+      sort(<span className="text-blue-600 dark:text-blue-400">id</span>)
+    </span>
   </Link>
 );
 

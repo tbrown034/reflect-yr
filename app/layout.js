@@ -8,8 +8,8 @@ import { ListProvider } from "@/library/contexts/ListContext";
 import TempListsSidebar from "@/components/layout/lists/TempListsSidebar";
 
 export const metadata = {
-  title: "ReflectYr",
-  description: "Your entertainment ranking tool",
+  title: "Sortid",
+  description: "A list-making app for ranking movies, TV, anime, books, and podcasts.",
 };
 
 export default function RootLayout({ children }) {
