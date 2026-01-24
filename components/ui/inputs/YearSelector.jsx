@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
+import { DECADE_OPTIONS } from "@/library/utils/yearUtils";
 
 export default function YearSelector({
   navigateOnChange = true,
@@ -11,6 +12,7 @@ export default function YearSelector({
   initialYear = null,
   onYearChange = null,
   selectedYear: controlledYear = null,
+  showDecades = true,
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -45,6 +47,11 @@ export default function YearSelector({
     (startYear + index).toString()
   ).reverse();
 
+  // Filter decades to only show those within our year range
+  const availableDecades = showDecades
+    ? DECADE_OPTIONS.filter((d) => d.startYear >= startYear - 9)
+    : [];
+
   return (
     <select
       id="year-selector"
@@ -54,11 +61,25 @@ export default function YearSelector({
       className={className}
       aria-label="Select content year"
     >
-      {years.map((year) => (
-        <option key={year} value={year}>
-          {year}
-        </option>
-      ))}
+      {/* Decade options */}
+      {availableDecades.length > 0 && (
+        <optgroup label="Decades">
+          {availableDecades.map((decade) => (
+            <option key={decade.value} value={decade.value}>
+              {decade.label}
+            </option>
+          ))}
+        </optgroup>
+      )}
+
+      {/* Individual years */}
+      <optgroup label="Years">
+        {years.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </optgroup>
     </select>
   );
 }

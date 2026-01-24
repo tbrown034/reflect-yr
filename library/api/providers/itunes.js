@@ -74,42 +74,61 @@ export async function search(query, options = {}) {
 
 /**
  * Discover top podcasts
+ * For year filtering, we check if podcast had episodes/activity in that year
  */
 export async function discover(options = {}) {
-  const { limit = 20, genre, country = "US" } = options;
-  console.log(`${LOG_PREFIX} Discovering podcasts`);
+  const { limit = 20, year, genre, country = "US" } = options;
+  console.log(`${LOG_PREFIX} Discovering podcasts${year ? `, year: ${year}` : ""}`);
 
   // iTunes doesn't have a great "discover" endpoint
-  // Use top charts or search for popular terms
-  const params = new URLSearchParams({
-    term: "podcast",
-    media: "podcast",
-    entity: "podcast",
-    limit: limit.toString(),
-    country,
-  });
+  // Use search for popular podcast terms
+  const searchTerms = ["top podcast", "popular podcast", "best podcast"];
+  const allResults = [];
+  const seenIds = new Set();
 
-  if (genre) {
-    params.append("genreId", genre);
-  }
+  for (const term of searchTerms) {
+    if (allResults.length >= limit) break;
 
-  try {
-    const response = await fetch(`${BASE_URL}/search?${params}`, {
-      next: { revalidate: 86400 },
+    const params = new URLSearchParams({
+      term,
+      media: "podcast",
+      entity: "podcast",
+      limit: "50", // Fetch more to filter by year
+      country,
     });
 
-    if (!response.ok) {
-      throw new Error(`iTunes discover failed: ${response.statusText}`);
+    if (genre) {
+      params.append("genreId", genre);
     }
 
-    const data = await response.json();
-    const results = (data.results || []).slice(0, limit).map(normalizePodcast);
-    console.log(`${LOG_PREFIX} Found ${results.length} podcasts`);
-    return results;
-  } catch (error) {
-    console.error(`${LOG_PREFIX} Discover error:`, error);
-    return [];
+    try {
+      const response = await fetch(`${BASE_URL}/search?${params}`, {
+        next: { revalidate: 86400 },
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      const podcasts = (data.results || []).map(normalizePodcast);
+
+      for (const podcast of podcasts) {
+        if (allResults.length >= limit) break;
+        if (seenIds.has(podcast.id)) continue;
+
+        // If year filter is set, only include podcasts from that year or still active
+        // Podcasts are considered "active in year" if they started before/during that year
+        if (year && podcast.year && podcast.year > year) continue;
+
+        seenIds.add(podcast.id);
+        allResults.push(podcast);
+      }
+    } catch (error) {
+      console.error(`${LOG_PREFIX} Discover error for term "${term}":`, error);
+    }
   }
+
+  console.log(`${LOG_PREFIX} Found ${allResults.length} podcasts`);
+  return allResults.slice(0, limit);
 }
 
 /**

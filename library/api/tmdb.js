@@ -2,6 +2,8 @@
 // 3/11/7:54 p.m. update works in prod
 export const getMovies = async ({
   year = null,
+  startYear = null,
+  endYear = null,
   sortBy = "popularity.desc",
   includeAdult = false,
   includeVideo = false,
@@ -23,8 +25,13 @@ export const getMovies = async ({
     "vote_count.gte": 100, // Ensure sufficient votes for meaningful ratings
   });
 
-  if (year) {
-    queryParams.append("primary_release_year", year); // Adds year filter if provided
+  // Handle year filtering - supports single year or date range (for decades)
+  if (startYear && endYear && startYear !== endYear) {
+    // Date range filtering for decades
+    queryParams.append("primary_release_date.gte", `${startYear}-01-01`);
+    queryParams.append("primary_release_date.lte", `${endYear}-12-31`);
+  } else if (year) {
+    queryParams.append("primary_release_year", year); // Single year filter
   }
 
   const url = `https://api.themoviedb.org/3/discover/movie?${queryParams.toString()}`;
@@ -56,6 +63,8 @@ export const getMovies = async ({
 
 export const getTvShows = async ({
   year = null,
+  startYear = null,
+  endYear = null,
   sortBy = "popularity.desc",
   includeAdult = false,
   language = "en-US",
@@ -75,8 +84,13 @@ export const getTvShows = async ({
     "vote_count.gte": 50, // Minimum votes threshold (lower for TV shows)
   });
 
-  if (year) {
-    queryParams.append("first_air_date_year", year); // Adds year filter for TV shows
+  // Handle year filtering - supports single year or date range (for decades)
+  if (startYear && endYear && startYear !== endYear) {
+    // Date range filtering for decades
+    queryParams.append("first_air_date.gte", `${startYear}-01-01`);
+    queryParams.append("first_air_date.lte", `${endYear}-12-31`);
+  } else if (year) {
+    queryParams.append("first_air_date_year", year); // Single year filter
   }
 
   const url = `https://api.themoviedb.org/3/discover/tv?${queryParams.toString()}`;

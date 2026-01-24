@@ -13,21 +13,13 @@ const About = () => {
           </p>
         </section>
 
-        {/* Why Sortid? */}
+        {/* What Sortid Does */}
         <section>
-          <h2 className="text-2xl font-semibold mb-3">Why Sortid?</h2>
-          <p className="text-lg mb-4">
-            The name comes from code. In programming,{" "}
-            <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
-              sort(id)
-            </code>{" "}
-            is a function call that takes an identifier and puts things in order.
-            That's exactly what this app does: it takes your taste and sorts it.
-          </p>
+          <h2 className="text-2xl font-semibold mb-3">What We Do</h2>
           <p className="text-lg">
-            <strong>Sortid</strong> is the company. <strong>sort(id)</strong> is the mark.
-            Code-native branding for a tool built by developers, for everyone who
-            loves making lists.
+            Rank your favorites. Share your taste. Compare with friends.
+            Sortid makes it easy to create beautiful, shareable lists of the
+            entertainment you love — movies, TV, anime, books, and podcasts.
           </p>
         </section>
 
@@ -67,70 +59,40 @@ const About = () => {
         {/* Tech Stack */}
         <section>
           <h2 className="text-2xl font-semibold mb-3">Tech Stack</h2>
-          <p className="text-lg">
-            Sortid is built using the latest web technologies for speed,
-            scalability, and ease of use:
+          <p className="text-lg mb-4">
+            Built with modern web technologies for speed and reliability.
           </p>
-          <ul className="text-lg text-left inline-block">
-            <li>
-              ⚡ <strong>Next.js (App Router v15)</strong> – Optimized for
-              performance & server components.
-            </li>
-            <li>
-              🎨 <strong>Tailwind CSS</strong> – Lightweight and flexible
-              styling.
-            </li>
-            <li>
-              📡 <strong>PostgreSQL & Prisma</strong> – Robust, scalable
-              database with an intuitive ORM.
-            </li>
-            <li>
-              🚀 <strong>Vercel</strong> – Instant deployments and serverless
-              functions.
-            </li>
-            <li>
-              🎬 <strong>TMDB API</strong> – Fetches movie and entertainment
-              data.
-            </li>
+          <ul className="text-lg text-left inline-block space-y-1">
+            <li><strong>Next.js 16</strong> — App Router, server components</li>
+            <li><strong>Tailwind CSS</strong> — Utility-first styling</li>
+            <li><strong>PostgreSQL</strong> — Scalable database</li>
+            <li><strong>Vercel</strong> — Edge deployment</li>
+            <li><strong>TMDB API</strong> — Movie and TV data</li>
           </ul>
         </section>
 
         {/* Contact */}
         <section>
           <h2 className="text-2xl font-semibold mb-3">Contact</h2>
-          <p className="text-lg">
-            Have questions, feedback, or collaboration ideas? Reach out via
-            email or follow on social media.
+          <p className="text-lg mb-4">
+            Questions, feedback, or collaboration ideas?
           </p>
-          <p className="text-lg font-medium mt-2">
-            📧 Email:{" "}
-            <a href="mailto:your-email@example.com">your-email@example.com</a>
-          </p>
-          <p className="text-lg font-medium">
-            🐦 Twitter:{" "}
-            <a href="https://twitter.com/yourhandle" target="_blank" rel="noreferrer">
-              @yourhandle
+          <div className="flex flex-col gap-2 text-lg">
+            <a
+              href="mailto:trevorbrown.web@gmail.com"
+              className="text-blue-500 hover:text-blue-400 transition-colors"
+            >
+              trevorbrown.web@gmail.com
             </a>
-          </p>
-          <p className="text-lg font-medium">
-            💼 GitHub:{" "}
-            <a href="https://github.com/tbrown034" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/tbrown034"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-500 hover:text-blue-400 transition-colors"
+            >
               github.com/tbrown034
             </a>
-          </p>
-        </section>
-
-        {/* Hiring the Developer */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-3">Hire the Developer</h2>
-          <p className="text-lg">
-            Looking for a front-end or full-stack developer with expertise in
-            Next.js, Tailwind, and performance optimization? Trevor is open to
-            freelance and full-time opportunities.
-          </p>
-          <p className="text-lg font-medium mt-2">
-            📩 Reach out via email or LinkedIn to discuss potential projects!
-          </p>
+          </div>
         </section>
       </div>
     </div>
