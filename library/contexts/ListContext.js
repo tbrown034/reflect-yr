@@ -5,6 +5,14 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import { MAX_LIST_SIZE } from "@/library/utils/defaults";
 import { generateListId, generateShareCode } from "@/library/utils/listUtils";
 import { CATEGORIES, getAllCategories } from "@/library/api/providers/types";
+import { authClient } from "@/library/auth-client";
+import {
+  fetchUserLists,
+  createListInDatabase,
+  updateListInDatabase,
+  deleteListFromDatabase,
+  mergeListsWithDatabase,
+} from "@/library/utils/listSync";
 
 const LOG_PREFIX = "[ListContext]";
 
@@ -133,38 +141,69 @@ export function ListProvider({ children }) {
   const [watchedPool, setWatchedPool] = useState({ movies: [], tv: [] });
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize lists from localStorage
+  // Track user session for cloud sync
+  const { data: session, isPending: isSessionLoading } = authClient.useSession();
+  const isLoggedIn = !!session?.user?.id;
+
+  // Initialize lists from localStorage + database (if logged in)
   useEffect(() => {
-    console.log(`${LOG_PREFIX} Initializing from localStorage...`);
-    try {
-      const storedMovieList = localStorage.getItem(STORAGE_KEYS.MOVIE_LIST);
-      const storedTvList = localStorage.getItem(STORAGE_KEYS.TV_LIST);
-      const storedTempLists = localStorage.getItem(STORAGE_KEYS.TEMP_LISTS);
-      const storedPublishedLists = localStorage.getItem(STORAGE_KEYS.PUBLISHED_LISTS);
-      const storedRecommendationLists = localStorage.getItem(STORAGE_KEYS.RECOMMENDATION_LISTS);
-      const storedWatchedPool = localStorage.getItem(STORAGE_KEYS.WATCHED_POOL);
+    async function initializeLists() {
+      console.log(`${LOG_PREFIX} Initializing lists...`);
 
-      if (storedMovieList) setMovieList(JSON.parse(storedMovieList));
-      if (storedTvList) setTvList(JSON.parse(storedTvList));
-      if (storedTempLists) setTempLists(JSON.parse(storedTempLists));
-      if (storedPublishedLists) setPublishedLists(JSON.parse(storedPublishedLists));
-      if (storedRecommendationLists) setRecommendationLists(JSON.parse(storedRecommendationLists));
-      if (storedWatchedPool) setWatchedPool(JSON.parse(storedWatchedPool));
+      // Step 1: Load from localStorage first (always available offline)
+      let localPublishedLists = {};
+      try {
+        const storedMovieList = localStorage.getItem(STORAGE_KEYS.MOVIE_LIST);
+        const storedTvList = localStorage.getItem(STORAGE_KEYS.TV_LIST);
+        const storedTempLists = localStorage.getItem(STORAGE_KEYS.TEMP_LISTS);
+        const storedPublishedLists = localStorage.getItem(STORAGE_KEYS.PUBLISHED_LISTS);
+        const storedRecommendationLists = localStorage.getItem(STORAGE_KEYS.RECOMMENDATION_LISTS);
+        const storedWatchedPool = localStorage.getItem(STORAGE_KEYS.WATCHED_POOL);
 
-      console.log(`${LOG_PREFIX} Loaded from localStorage:`, {
-        movieList: storedMovieList ? JSON.parse(storedMovieList).length : 0,
-        tvList: storedTvList ? JSON.parse(storedTvList).length : 0,
-        tempLists: storedTempLists ? Object.keys(JSON.parse(storedTempLists)).length : 0,
-        publishedLists: storedPublishedLists ? Object.keys(JSON.parse(storedPublishedLists)).length : 0,
-        watchedPool: storedWatchedPool ? JSON.parse(storedWatchedPool).movies?.length : 0,
-      });
+        if (storedMovieList) setMovieList(JSON.parse(storedMovieList));
+        if (storedTvList) setTvList(JSON.parse(storedTvList));
+        if (storedTempLists) setTempLists(JSON.parse(storedTempLists));
+        if (storedPublishedLists) localPublishedLists = JSON.parse(storedPublishedLists);
+        if (storedRecommendationLists) setRecommendationLists(JSON.parse(storedRecommendationLists));
+        if (storedWatchedPool) setWatchedPool(JSON.parse(storedWatchedPool));
 
-      setIsInitialized(true);
-    } catch (error) {
-      console.error(`${LOG_PREFIX} Error loading from localStorage:`, error);
+        console.log(`${LOG_PREFIX} Loaded from localStorage:`, {
+          publishedLists: Object.keys(localPublishedLists).length,
+        });
+      } catch (error) {
+        console.error(`${LOG_PREFIX} Error loading from localStorage:`, error);
+      }
+
+      // Step 2: If logged in, fetch from database and merge
+      if (isLoggedIn && !isSessionLoading) {
+        console.log(`${LOG_PREFIX} User is logged in, fetching from database...`);
+        const { lists: dbLists, error } = await fetchUserLists();
+
+        if (dbLists && !error) {
+          // Merge database lists with localStorage (database takes priority)
+          const mergedLists = mergeListsWithDatabase(localPublishedLists, dbLists);
+          setPublishedLists(mergedLists);
+          console.log(`${LOG_PREFIX} Merged ${dbLists.length} database lists with localStorage`);
+        } else if (error) {
+          console.warn(`${LOG_PREFIX} Database fetch failed, using localStorage only:`, error);
+          setPublishedLists(localPublishedLists);
+        } else {
+          // No error but no lists (not authenticated response)
+          setPublishedLists(localPublishedLists);
+        }
+      } else {
+        // Not logged in - use localStorage only
+        setPublishedLists(localPublishedLists);
+      }
+
       setIsInitialized(true);
     }
-  }, []);
+
+    // Wait until session state is resolved
+    if (!isSessionLoading) {
+      initializeLists();
+    }
+  }, [isLoggedIn, isSessionLoading]);
 
   // Save movie list to localStorage
   useEffect(() => {
@@ -577,8 +616,37 @@ export function ListProvider({ children }) {
     setPublishedLists((prev) => ({ ...prev, [listId]: newList }));
     console.log(`${LOG_PREFIX} Created enhanced list: ${listId}`, { category: listCategory, theme, year, itemCount: items.length });
 
+    // Sync to database if logged in (fire and forget)
+    if (isLoggedIn) {
+      createListInDatabase({
+        type: listCategory,
+        title: newList.title,
+        description: newList.description,
+        theme: newList.theme,
+        accentColor: newList.accentColor,
+        year: newList.year,
+        isPublic: newList.isPublic,
+        items: enhancedItems,
+      }).then(({ list, error }) => {
+        if (list) {
+          // Update local state with synced data (share code from server)
+          setPublishedLists((prev) => ({
+            ...prev,
+            [listId]: {
+              ...prev[listId],
+              shareCode: list.shareCode,
+              syncedAt: new Date().toISOString(),
+            },
+          }));
+          console.log(`${LOG_PREFIX} List synced to database: ${listId}`);
+        } else if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync list to database:`, error);
+        }
+      });
+    }
+
     return listId;
-  }, [hasReachedTotalListLimit]);
+  }, [hasReachedTotalListLimit, isLoggedIn]);
 
   const getPublishedList = useCallback((listId) => {
     if (!isInitialized) return null;
@@ -597,14 +665,14 @@ export function ListProvider({ children }) {
   }, [isInitialized, publishedLists]);
 
   const updatePublishedListItems = useCallback((listId, newItems) => {
+    // Ensure items have ranks
+    const rankedItems = newItems.map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }));
+
     setPublishedLists((prev) => {
       if (!prev[listId]) return prev;
-
-      // Ensure items have ranks
-      const rankedItems = newItems.map((item, index) => ({
-        ...item,
-        rank: index + 1,
-      }));
 
       return {
         ...prev,
@@ -615,7 +683,18 @@ export function ListProvider({ children }) {
         },
       };
     });
-  }, []);
+
+    // Sync to database if logged in
+    if (isLoggedIn) {
+      updateListInDatabase(listId, { items: rankedItems }).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync items to database:`, error);
+        } else {
+          console.log(`${LOG_PREFIX} Items synced to database: ${listId}`);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   const updatePublishedListMetadata = useCallback((listId, metadataUpdate) => {
     console.log(`${LOG_PREFIX} Updating list metadata: ${listId}`, metadataUpdate);
@@ -631,15 +710,28 @@ export function ListProvider({ children }) {
         },
       };
     });
-  }, []);
+
+    // Sync to database if logged in
+    if (isLoggedIn) {
+      updateListInDatabase(listId, metadataUpdate).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync metadata to database:`, error);
+        } else {
+          console.log(`${LOG_PREFIX} Metadata synced to database: ${listId}`);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   // Update comment for a specific item in a list
   const updateItemComment = useCallback((listId, itemId, comment) => {
     console.log(`${LOG_PREFIX} Updating item comment: list=${listId}, item=${itemId}`);
+    let updatedItems = [];
+
     setPublishedLists((prev) => {
       if (!prev[listId]) return prev;
 
-      const updatedItems = prev[listId].items.map((item) =>
+      updatedItems = prev[listId].items.map((item) =>
         item.id === itemId ? { ...item, comment } : item
       );
 
@@ -652,15 +744,26 @@ export function ListProvider({ children }) {
         },
       };
     });
-  }, []);
+
+    // Sync to database if logged in
+    if (isLoggedIn && updatedItems.length > 0) {
+      updateListInDatabase(listId, { items: updatedItems }).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync comment to database:`, error);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   // Update user rating for a specific item in a list
   const updateItemRating = useCallback((listId, itemId, rating) => {
     console.log(`${LOG_PREFIX} Updating item rating: list=${listId}, item=${itemId}, rating=${rating}`);
+    let updatedItems = [];
+
     setPublishedLists((prev) => {
       if (!prev[listId]) return prev;
 
-      const updatedItems = prev[listId].items.map((item) =>
+      updatedItems = prev[listId].items.map((item) =>
         item.id === itemId ? { ...item, userRating: rating } : item
       );
 
@@ -673,13 +776,24 @@ export function ListProvider({ children }) {
         },
       };
     });
-  }, []);
+
+    // Sync to database if logged in
+    if (isLoggedIn && updatedItems.length > 0) {
+      updateListInDatabase(listId, { items: updatedItems }).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync rating to database:`, error);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   const removePublishedListItem = useCallback((listId, itemId) => {
+    let newItems = [];
+
     setPublishedLists((prev) => {
       if (!prev[listId]) return prev;
 
-      const newItems = prev[listId].items
+      newItems = prev[listId].items
         .filter((item) => item.id !== itemId)
         .map((item, index) => ({ ...item, rank: index + 1 }));
 
@@ -692,7 +806,16 @@ export function ListProvider({ children }) {
         },
       };
     });
-  }, []);
+
+    // Sync to database if logged in
+    if (isLoggedIn) {
+      updateListInDatabase(listId, { items: newItems }).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to sync item removal to database:`, error);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   const deletePublishedList = useCallback((listId) => {
     console.log(`${LOG_PREFIX} Deleting list: ${listId}`);
@@ -701,7 +824,18 @@ export function ListProvider({ children }) {
       delete newLists[listId];
       return newLists;
     });
-  }, []);
+
+    // Sync delete to database if logged in
+    if (isLoggedIn) {
+      deleteListFromDatabase(listId).then(({ error }) => {
+        if (error) {
+          console.warn(`${LOG_PREFIX} Failed to delete from database:`, error);
+        } else {
+          console.log(`${LOG_PREFIX} List deleted from database: ${listId}`);
+        }
+      });
+    }
+  }, [isLoggedIn]);
 
   const deleteAllPublishedLists = useCallback(() => {
     console.log(`${LOG_PREFIX} Deleting all published lists`);
@@ -913,6 +1047,11 @@ export function ListProvider({ children }) {
         recommendationLists,
         watchedPool,
         isInitialized,
+
+        // Auth state (for cloud sync)
+        isLoggedIn,
+        session,
+        isSessionLoading,
 
         // Category utilities
         CATEGORIES,
