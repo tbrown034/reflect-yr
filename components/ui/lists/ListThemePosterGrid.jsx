@@ -2,8 +2,19 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { FilmIcon, TvIcon, BookOpenIcon, MicrophoneIcon, MusicalNoteIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { getImageUrl } from "./themeUtils";
 
 const LOG_PREFIX = "[ListThemePosterGrid]";
+
+const CATEGORY_ICONS = {
+  movie: FilmIcon,
+  tv: TvIcon,
+  book: BookOpenIcon,
+  podcast: MicrophoneIcon,
+  album: MusicalNoteIcon,
+  custom: SparklesIcon,
+};
 
 /**
  * Poster Grid theme - visual grid of movie posters with hover details
@@ -61,17 +72,20 @@ export default function ListThemePosterGrid({
             className="group relative aspect-2/3 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer"
           >
             {/* Poster */}
-            {item.poster_path ? (
+            {getImageUrl(item, "large") ? (
               <Image
-                src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                src={getImageUrl(item, "large")}
                 alt={item.title || item.name}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
                 className="object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                <span className="text-gray-500 text-sm">No Poster</span>
+              <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                {(() => {
+                  const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
+                  return <FallbackIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />;
+                })()}
               </div>
             )}
 

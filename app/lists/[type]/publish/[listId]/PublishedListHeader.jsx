@@ -24,7 +24,7 @@ function formatDate(dateString) {
 
 export default function PublishedListHeader({
   listData, // The full list object { id, type, items, title, publishedAt }
-  listIsMovieType, // Boolean: true if listData.type === 'movie'
+  pageTypeLabelPlural, // String: e.g., "Movies", "TV Shows", "Books", etc.
   isEditingTitle, // Boolean: true if title input should be shown
   editableTitle, // String: Current value of the title input
   onTitleChange, // Function: (event) => void - Handles input changes
@@ -33,7 +33,7 @@ export default function PublishedListHeader({
   onCancelEditTitle, // Function: () => void - Cancels edit mode
 }) {
   // Determine the default title if none is set in listData
-  const defaultTitle = `My Top ${listIsMovieType ? "Movies" : "TV Shows"}`;
+  const defaultTitle = `My Top ${pageTypeLabelPlural}`;
 
   // Use the title from listData or fall back to the default
   const displayTitle = listData?.title || defaultTitle;

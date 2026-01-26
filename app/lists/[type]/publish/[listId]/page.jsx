@@ -29,6 +29,7 @@ export default function PublishedListPage() {
     updatePublishedListMetadata,
     removePublishedListItem,
     clearList,
+    isInitialized,
   } = use(ListContext);
 
   // Component state
@@ -41,16 +42,34 @@ export default function PublishedListPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editableTitle, setEditableTitle] = useState("");
 
+  // Valid URL types and their corresponding list types
+  const validTypes = {
+    movies: { listType: "movie", label: "Movie", labelPlural: "Movies" },
+    tv: { listType: "tv", label: "TV Show", labelPlural: "TV Shows" },
+    books: { listType: "book", label: "Book", labelPlural: "Books" },
+    podcasts: { listType: "podcast", label: "Podcast", labelPlural: "Podcasts" },
+    albums: { listType: "album", label: "Album", labelPlural: "Albums" },
+    custom: { listType: "custom", label: "Item", labelPlural: "Items" },
+  };
+
   // Derived values
-  const isValidType = type === "movies" || type === "tv";
-  const pageTypeLabel = type === "movies" ? "Movie" : "TV Show";
-  const listIsMovieType = listData?.type === "movie";
+  const isValidType = type && validTypes[type] !== undefined;
+  const typeConfig = validTypes[type] || { listType: type, label: "Item", labelPlural: "Items" };
+  const pageTypeLabel = typeConfig.label;
+  const pageTypeLabelPlural = typeConfig.labelPlural;
+  const expectedListType = typeConfig.listType;
 
   // Load list data on component mount and when params change
   useEffect(() => {
     if (!isValidType || !listId) {
       setListNotFound(true);
       setIsLoading(false);
+      return;
+    }
+
+    // Wait for context to initialize before looking up the list
+    if (!isInitialized) {
+      setIsLoading(true);
       return;
     }
 
@@ -62,13 +81,8 @@ export default function PublishedListPage() {
     if (!fetchedList) {
       setListNotFound(true);
     } else {
-      const fetchedListIsMovie = fetchedList.type === "movie";
-
       // Check if URL type matches list type
-      if (
-        (fetchedListIsMovie && type !== "movies") ||
-        (!fetchedListIsMovie && type !== "tv")
-      ) {
+      if (fetchedList.type !== expectedListType) {
         setListNotFound(true);
       } else {
         setListData(fetchedList);
@@ -78,7 +92,7 @@ export default function PublishedListPage() {
     }
 
     setIsLoading(false);
-  }, [listId, type, getPublishedList, isValidType]);
+  }, [listId, type, getPublishedList, isValidType, expectedListType, isInitialized]);
 
   // Function to refresh state from context
   function syncLocalStateFromContext() {
@@ -169,7 +183,7 @@ export default function PublishedListPage() {
   function handleConfirmEditTitle() {
     const newTitle =
       editableTitle.trim() ||
-      `My Top ${listIsMovieType ? "Movies" : "TV Shows"}`;
+      `My Top ${pageTypeLabelPlural}`;
 
     // First update the context
     updatePublishedListMetadata(listId, { title: newTitle });
@@ -211,7 +225,7 @@ export default function PublishedListPage() {
 
     const textToCopy = formatListText(currentItems, listData.type);
     const listTitle =
-      listData.title || `My Top ${listIsMovieType ? "Movies" : "TV Shows"}`;
+      listData.title || `My Top ${pageTypeLabelPlural}`;
     const fullText = `${listTitle}\n\n${textToCopy}`;
 
     navigator.clipboard
@@ -232,7 +246,7 @@ export default function PublishedListPage() {
       : getShareableUrl(type, listId);
     const shareUrl = encodeURIComponent(rawUrl);
     const listTitle =
-      listData.title || `My Top ${listIsMovieType ? "Movies" : "TV Shows"}`;
+      listData.title || `My Top ${pageTypeLabelPlural}`;
     const text = encodeURIComponent(`Check out my list: ${listTitle}`);
     let platformUrl = "";
 
@@ -259,7 +273,7 @@ export default function PublishedListPage() {
 
   // Other action handlers
   function handleCreateNew() {
-    const typeToClear = listData?.type || (type === "movies" ? "movie" : "tv");
+    const typeToClear = listData?.type || expectedListType;
 
     if (
       window.confirm(
@@ -267,7 +281,7 @@ export default function PublishedListPage() {
       )
     ) {
       clearList(typeToClear);
-      router.push(type === "movies" ? "/movies" : "/tv");
+      router.push(`/${type}`);
     }
   }
 
@@ -309,7 +323,7 @@ export default function PublishedListPage() {
         {/* Header with title and edit functionality */}
         <PublishedListHeader
           listData={listData}
-          listIsMovieType={listIsMovieType}
+          pageTypeLabelPlural={pageTypeLabelPlural}
           isEditingTitle={isEditingTitle}
           editableTitle={editableTitle}
           onTitleChange={handleTitleInputChange}
@@ -322,7 +336,8 @@ export default function PublishedListPage() {
         <div className="p-6">
           <PublishedListItems
             items={currentItems}
-            listIsMovieType={listIsMovieType}
+            listType={expectedListType}
+            urlType={type}
             onMoveUp={handleMoveItemUp}
             onMoveDown={handleMoveItemDown}
             onRemove={handleRemoveItem}

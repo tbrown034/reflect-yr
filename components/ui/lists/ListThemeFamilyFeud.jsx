@@ -3,9 +3,19 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlayIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import { PlayIcon, ChevronDownIcon, FilmIcon, TvIcon, BookOpenIcon, MicrophoneIcon, MusicalNoteIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { getImageUrl } from "./themeUtils";
 
 const LOG_PREFIX = "[ListThemeFamilyFeud]";
+
+const CATEGORY_ICONS = {
+  movie: FilmIcon,
+  tv: TvIcon,
+  book: BookOpenIcon,
+  podcast: MicrophoneIcon,
+  album: MusicalNoteIcon,
+  custom: SparklesIcon,
+};
 
 /**
  * Family Feud theme - reveal items one by one with game show style
@@ -113,17 +123,22 @@ export default function ListThemeFamilyFeud({
                     </div>
 
                     {/* Poster */}
-                    <div className="shrink-0 w-12 h-16 relative rounded overflow-hidden">
-                      {item.poster_path ? (
+                    <div className="shrink-0 w-12 h-16 relative rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+                      {getImageUrl(item, "small") ? (
                         <Image
-                          src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                          src={getImageUrl(item, "small")}
                           alt={item.title || item.name}
                           fill
                           sizes="48px"
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-300 dark:bg-gray-700" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                          {(() => {
+                            const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
+                            return <FallbackIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />;
+                          })()}
+                        </div>
                       )}
                     </div>
 

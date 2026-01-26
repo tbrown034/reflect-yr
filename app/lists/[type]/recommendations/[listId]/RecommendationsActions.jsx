@@ -79,58 +79,66 @@ export default function RecommendationsActions({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Back to List Button */}
-      <Link
-        href={listLink}
-        className="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors text-sm sm:text-base"
-      >
-        <ArrowLeftIcon className="h-5 w-5 shrink-0" />
-        <span>Back to My List</span>
-      </Link>
+    <div className="px-4 py-4 sm:px-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Primary actions */}
+        <div className="flex flex-wrap gap-2">
+          {/* Back to List */}
+          <Link
+            href={listLink}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors text-sm font-medium"
+          >
+            <ArrowLeftIcon className="h-4 w-4" />
+            <span>Back to List</span>
+          </Link>
 
-      {/* Generate New Recommendations Button */}
-      <button
-        onClick={handleRegenerateClick}
-        className="inline-flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-colors text-sm sm:text-base"
-      >
-        <ArrowPathIcon className="h-5 w-5 shrink-0" />
-        <span>Regenerate Recommendations</span>
-      </button>
+          {/* Save Recommendations */}
+          <button
+            onClick={handleSaveList}
+            disabled={isSaving || saveSuccess || recommendations.length === 0}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+              saveSuccess
+                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                : recommendations.length === 0
+                ? "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100"
+            }`}
+          >
+            {saveSuccess ? (
+              <>
+                <CheckCircleIcon className="h-4 w-4" />
+                <span>Saved!</span>
+              </>
+            ) : (
+              <>
+                <BookmarkIcon className="h-4 w-4" />
+                <span>{isSaving ? "Saving..." : "Save"}</span>
+              </>
+            )}
+          </button>
+        </div>
 
-      {/* Save Recommendations Button */}
-      <button
-        onClick={handleSaveList}
-        disabled={isSaving || saveSuccess || recommendations.length === 0}
-        className={`inline-flex items-center gap-2 px-4 py-3 rounded-lg transition-colors text-sm sm:text-base ${
-          isSaving || saveSuccess
-            ? "bg-green-600 text-white cursor-default"
-            : recommendations.length === 0
-            ? "bg-gray-400 text-white cursor-not-allowed"
-            : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800"
-        }`}
-      >
-        {saveSuccess ? (
-          <>
-            <CheckCircleIcon className="h-5 w-5 shrink-0" />
-            <span>Saved!</span>
-          </>
-        ) : (
-          <>
-            <BookmarkIcon className="h-5 w-5 shrink-0" />
-            <span>{isSaving ? "Saving..." : "Save Recommendations"}</span>
-          </>
-        )}
-      </button>
+        {/* Secondary actions */}
+        <div className="flex flex-wrap gap-2 sm:ml-auto">
+          {/* Regenerate */}
+          <button
+            onClick={handleRegenerateClick}
+            className="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-sm font-medium"
+          >
+            <ArrowPathIcon className="h-4 w-4" />
+            <span>Regenerate</span>
+          </button>
 
-      {/* Browse All Button */}
-      <Link
-        href={`/${type}`}
-        className="inline-flex items-center gap-2 px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors text-sm sm:text-base"
-      >
-        <DocumentTextIcon className="h-5 w-5 shrink-0" />
-        <span>Browse All {pageTypeLabel}s</span>
-      </Link>
+          {/* Browse All */}
+          <Link
+            href={`/${type}`}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
+          >
+            <DocumentTextIcon className="h-4 w-4" />
+            <span>Browse {pageTypeLabel}s</span>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

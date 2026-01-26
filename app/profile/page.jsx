@@ -1,45 +1,56 @@
 import { auth } from "@/library/auth";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { SignInButton } from "@/components/ui/buttons/actions/SignInButton";
 import { SignOut } from "@/components/ui/buttons/actions/SignOutButton";
-
-const isDev = process.env.NODE_ENV === "development";
 
 export default async function Profile() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (isDev) {
-    console.log("[ProfilePage] Session:", session?.user?.email || "none");
-  }
-
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg bg-white dark:bg-gray-900 shadow-md">
+    <div className="max-w-sm mx-auto px-4 py-12">
       {session?.user ? (
-        <div className="space-y-4 text-center">
+        <div className="text-center">
           {session.user.image && (
             <img
               src={session.user.image}
-              alt="User Avatar"
-              className="w-20 h-20 rounded-full mx-auto border-2 border-gray-200 dark:border-gray-700"
+              alt=""
+              className="w-16 h-16 rounded-full mx-auto border border-slate-200 dark:border-slate-700"
             />
           )}
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-white mt-4">
             {session.user.name || "User"}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {session.user.email}
           </p>
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+
+          <div className="mt-6 space-y-2">
+            <Link
+              href="/lists"
+              className="block w-full px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors text-sm font-medium"
+            >
+              My Lists
+            </Link>
+            <Link
+              href="/create"
+              className="block w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium"
+            >
+              Create List
+            </Link>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
             <SignOut />
           </div>
         </div>
       ) : (
-        <div className="text-center space-y-4">
-          <div className="mb-4">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
             <svg
-              className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500"
+              className="w-8 h-8 text-slate-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -52,13 +63,13 @@ export default async function Profile() {
               />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Welcome to Sortid
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Sign in to save your lists and access them from any device.
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-white mt-4">
+            Sign in to Sortid
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Save lists and access them anywhere.
           </p>
-          <div className="pt-4">
+          <div className="mt-6">
             <SignInButton />
           </div>
         </div>

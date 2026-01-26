@@ -2,9 +2,19 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { TrophyIcon, StarIcon } from "@heroicons/react/24/solid";
+import { TrophyIcon, StarIcon, FilmIcon, TvIcon, BookOpenIcon, MicrophoneIcon, MusicalNoteIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { getImageUrl } from "./themeUtils";
 
 const LOG_PREFIX = "[ListThemeAwards]";
+
+const CATEGORY_ICONS = {
+  movie: FilmIcon,
+  tv: TvIcon,
+  book: BookOpenIcon,
+  podcast: MicrophoneIcon,
+  album: MusicalNoteIcon,
+  custom: SparklesIcon,
+};
 
 /**
  * Awards Show theme - elegant ceremony style with winner highlights
@@ -94,17 +104,20 @@ export default function ListThemeAwards({
             <div className="relative flex flex-col sm:flex-row items-center gap-6">
               {/* Large Poster */}
               <div className="shrink-0 w-40 h-60 relative rounded-xl overflow-hidden shadow-2xl ring-4 ring-yellow-400/50">
-                {winner.poster_path ? (
+                {getImageUrl(winner, "large") ? (
                   <Image
-                    src={`https://image.tmdb.org/t/p/w500${winner.poster_path}`}
+                    src={getImageUrl(winner, "large")}
                     alt={winner.title || winner.name}
                     fill
                     sizes="160px"
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                    <span className="text-gray-500">No Poster</span>
+                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                    {(() => {
+                      const FallbackIcon = CATEGORY_ICONS[winner.category || list.category] || FilmIcon;
+                      return <FallbackIcon className="h-16 w-16 text-gray-400 dark:text-gray-500" />;
+                    })()}
                   </div>
                 )}
               </div>
@@ -162,17 +175,20 @@ export default function ListThemeAwards({
               >
                 {/* Poster */}
                 <div className="relative aspect-2/3">
-                  {item.poster_path ? (
+                  {getImageUrl(item, "medium") ? (
                     <Image
-                      src={`https://image.tmdb.org/t/p/w300${item.poster_path}`}
+                      src={getImageUrl(item, "medium")}
                       alt={item.title || item.name}
                       fill
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">No Poster</span>
+                    <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                      {(() => {
+                        const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
+                        return <FallbackIcon className="h-10 w-10 text-gray-400 dark:text-gray-500" />;
+                      })()}
                     </div>
                   )}
 

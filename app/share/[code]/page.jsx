@@ -16,6 +16,17 @@ import { motion } from "framer-motion";
 
 const LOG_PREFIX = "[SharePage]";
 
+// Type label mapping for share text
+const TYPE_LABELS = {
+  movie: "movie",
+  tv: "TV show",
+  book: "book",
+  podcast: "podcast",
+  anime: "anime",
+};
+
+const getTypeLabel = (type) => TYPE_LABELS[type] || type;
+
 export default function SharePage() {
   const params = useParams();
   const shareCode = params?.code;
@@ -24,25 +35,67 @@ export default function SharePage() {
 
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
   console.log(`${LOG_PREFIX} Rendering share page for code: ${shareCode}`);
 
   useEffect(() => {
-    if (!isInitialized || !shareCode) return;
+    if (!shareCode) return;
 
-    console.log(`${LOG_PREFIX} Looking up list by share code: ${shareCode}`);
-    const foundList = getListByShareCode(shareCode);
+    async function fetchList() {
+      setLoading(true);
+      setError(null);
 
-    if (foundList) {
-      console.log(`${LOG_PREFIX} Found list: ${foundList.title}`);
-      setList(foundList);
-    } else {
+      // Step 1: Try to fetch from database API first (works for all users)
+      console.log(`${LOG_PREFIX} Fetching list from API: ${shareCode}`);
+      try {
+        const response = await fetch(`/api/lists/share/${shareCode}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.list) {
+            console.log(`${LOG_PREFIX} Found list in database: ${data.list.title}`);
+            setList(data.list);
+            setLoading(false);
+            return;
+          }
+        } else if (response.status !== 404) {
+          // Log non-404 errors but continue to localStorage fallback
+          console.warn(`${LOG_PREFIX} API returned status ${response.status}`);
+        }
+      } catch (err) {
+        // Network error - continue to localStorage fallback
+        console.warn(`${LOG_PREFIX} API fetch failed:`, err.message);
+      }
+
+      // Step 2: Fall back to localStorage (same browser access)
+      if (isInitialized) {
+        console.log(`${LOG_PREFIX} Checking localStorage for: ${shareCode}`);
+        const localList = getListByShareCode(shareCode);
+
+        if (localList) {
+          console.log(`${LOG_PREFIX} Found list in localStorage: ${localList.title}`);
+          setList(localList);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Step 3: If localStorage not initialized yet, wait and retry
+      if (!isInitialized) {
+        console.log(`${LOG_PREFIX} Waiting for localStorage to initialize...`);
+        return; // Will retry when isInitialized changes
+      }
+
+      // Not found anywhere
       console.log(`${LOG_PREFIX} List not found for code: ${shareCode}`);
+      setError("List not found");
+      setLoading(false);
     }
 
-    setLoading(false);
-  }, [isInitialized, shareCode, getListByShareCode]);
+    fetchList();
+  }, [shareCode, isInitialized, getListByShareCode]);
 
   const handleCopyLink = async () => {
     try {
@@ -60,7 +113,7 @@ export default function SharePage() {
       try {
         await navigator.share({
           title: list.title,
-          text: `Check out my ${list.type === "movie" ? "movie" : "TV"} list: ${list.title}`,
+          text: `Check out my ${getTypeLabel(list.type)} list: ${list.title}`,
           url: window.location.href,
         });
         console.log(`${LOG_PREFIX} Shared successfully`);
@@ -86,8 +139,17 @@ export default function SharePage() {
     );
   }
 
-  // Not found state
+  // Error or not found state
   if (!list) {
+    const isError = error !== null;
+    const errorTitle = isError ? "Unable to Load List" : "List Not Found";
+    const errorMessage = isError
+      ? "An error occurred while trying to load this list. Please try again later or contact support if the problem persists."
+      : "This list may have been removed or the link is invalid.";
+    const bgColor = isError ? "bg-red-100 dark:bg-red-900/30" : "bg-yellow-100 dark:bg-yellow-900/30";
+    const iconColor = isError ? "text-red-600 dark:text-red-400" : "text-yellow-600 dark:text-yellow-400";
+    const Icon = isError ? ExclamationTriangleIcon : ExclamationTriangleIcon;
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
         <motion.div
@@ -95,14 +157,14 @@ export default function SharePage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-            <ExclamationTriangleIcon className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
+          <div className={`${bgColor} rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6`}>
+            <Icon className={`h-10 w-10 ${iconColor}`} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            List Not Found
+            {errorTitle}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            This list may have been removed or the link is invalid.
+            {errorMessage}
           </p>
           <Link
             href="/"

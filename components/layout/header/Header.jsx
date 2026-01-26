@@ -6,13 +6,13 @@ import HeaderNavBar from "./HeaderNavBar";
 
 const Header = () => {
   return (
-    <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+    <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-slate-700">
       <HeaderBranding />
       {/* HeaderNavBar visible md and up */}
       <div className="hidden md:flex">
         <HeaderNavBar />
       </div>
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-2 sm:gap-4 items-center">
         <SignInStatusIcon />
         {/* ThemeToggle visible md and up */}
         <div className="hidden md:flex">

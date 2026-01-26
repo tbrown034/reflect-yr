@@ -1,19 +1,19 @@
 // app/lists/[type]/recommendations/[listId]/RecommendationsHeader.jsx
 export default function RecommendationsHeader({ originalList, pageTypeLabel }) {
-  // Format the list title or use default
   const originalTitle =
     originalList?.title ||
     `My Top ${pageTypeLabel === "Movie" ? "Movies" : "TV Shows"}`;
 
   return (
-    <div className="p-6 border-b dark:border-gray-700 bg-linear-to-r from-purple-500 to-blue-500">
-      <h1 className="text-white text-2xl md:text-3xl font-bold mb-2">
-        Recommended {pageTypeLabel}s
-      </h1>
-      <p className="text-white opacity-90">
-        Based on your list:{" "}
-        <span className="font-semibold">{originalTitle}</span>
-      </p>
+    <div className="border-b border-slate-200 dark:border-slate-700">
+      <div className="px-4 py-6 sm:px-6">
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          Recommendations
+        </p>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+          Based on "{originalTitle}"
+        </h1>
+      </div>
     </div>
   );
 }

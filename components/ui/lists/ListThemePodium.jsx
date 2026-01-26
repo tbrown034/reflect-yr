@@ -2,9 +2,19 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { TrophyIcon, StarIcon } from "@heroicons/react/24/solid";
+import { TrophyIcon, StarIcon, FilmIcon, TvIcon, BookOpenIcon, MicrophoneIcon, MusicalNoteIcon, SparklesIcon } from "@heroicons/react/24/solid";
+import { getImageUrl } from "./themeUtils";
 
 const LOG_PREFIX = "[ListThemePodium]";
+
+const CATEGORY_ICONS = {
+  movie: FilmIcon,
+  tv: TvIcon,
+  book: BookOpenIcon,
+  podcast: MicrophoneIcon,
+  album: MusicalNoteIcon,
+  custom: SparklesIcon,
+};
 
 /**
  * Podium theme - Olympic-style podium with 1st, 2nd, 3rd
@@ -26,12 +36,6 @@ export default function ListThemePodium({
     return null;
   };
 
-  const getImageUrl = (item) => {
-    if (item.poster_path) return `https://image.tmdb.org/t/p/w500${item.poster_path}`;
-    if (item.image) return item.image;
-    return null;
-  };
-
   // Split items
   const first = list.items[0];
   const second = list.items[1];
@@ -47,8 +51,9 @@ export default function ListThemePodium({
   const PodiumItem = ({ item, place, height }) => {
     if (!item) return <div className={`flex-1 ${height}`} />;
 
-    const imageUrl = getImageUrl(item);
+    const imageUrl = getImageUrl(item, "large");
     const medalColor = medalColors[place];
+    const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
 
     return (
       <motion.div
@@ -74,8 +79,8 @@ export default function ListThemePodium({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-gray-500 text-xs">No Poster</span>
+            <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+              <FallbackIcon className={`${place === 1 ? "h-12 w-12" : "h-10 w-10"} text-gray-400 dark:text-gray-500`} />
             </div>
           )}
         </div>
@@ -155,8 +160,9 @@ export default function ListThemePodium({
 
           <div className="space-y-2">
             {others.map((item, index) => {
-              const imageUrl = getImageUrl(item);
+              const imageUrl = getImageUrl(item, "small");
               const rank = index + 4;
+              const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
 
               return (
                 <motion.div
@@ -173,7 +179,7 @@ export default function ListThemePodium({
 
                   {/* Poster */}
                   <div className="w-10 h-14 relative rounded overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-700">
-                    {imageUrl && (
+                    {imageUrl ? (
                       <Image
                         src={imageUrl}
                         alt={item.title || item.name}
@@ -181,6 +187,10 @@ export default function ListThemePodium({
                         sizes="40px"
                         className="object-cover"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                        <FallbackIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                      </div>
                     )}
                   </div>
 

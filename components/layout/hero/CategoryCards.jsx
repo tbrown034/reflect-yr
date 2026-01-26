@@ -195,17 +195,18 @@ export default function CategoryCards() {
   }
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-4">
+    <section className="w-full max-w-4xl mx-auto px-3 sm:px-4">
       {/* Section header */}
-      <div className="border-b border-slate-300 dark:border-slate-600 pb-3 mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      <div className="border-b border-slate-300 dark:border-slate-600 pb-2 sm:pb-3 mb-3 sm:mb-4">
+        <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Create a List
         </h2>
       </div>
 
       {/* Main grid - 3 draggable items + More button = 4 columns on desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-300 dark:bg-slate-600 border border-slate-300 dark:border-slate-600">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-px bg-slate-300 dark:bg-slate-600 border border-slate-300 dark:border-slate-600">
         <DndContext
+          id="category-cards-dnd"
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -253,7 +254,7 @@ export default function CategoryCards() {
 
       {/* More categories - collapsible */}
       {showMore && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-300 dark:bg-slate-600 border-x border-b border-slate-300 dark:border-slate-600 mt-px">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-px bg-slate-300 dark:bg-slate-600 border-x border-b border-slate-300 dark:border-slate-600 mt-0.5 sm:mt-px">
           {moreCategories.map((category) => (
             <CategoryCard
               key={category.id}

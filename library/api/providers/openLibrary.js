@@ -7,17 +7,19 @@ const COVERS_URL = "https://covers.openlibrary.org";
 
 /**
  * Get cover image URL from cover ID
+ * Sizes: S (small ~45px), M (medium ~180px), L (large ~600px)
+ * Default to L to avoid blurry images in larger displays
  */
-export function getCoverUrl(coverId, size = "M") {
+export function getCoverUrl(coverId, size = "L") {
   if (!coverId) return null;
-  // Sizes: S (small), M (medium), L (large)
   return `${COVERS_URL}/b/id/${coverId}-${size}.jpg`;
 }
 
 /**
  * Get cover URL from ISBN
+ * Default to L (large) for better quality
  */
-export function getCoverUrlByIsbn(isbn, size = "M") {
+export function getCoverUrlByIsbn(isbn, size = "L") {
   if (!isbn) return null;
   return `${COVERS_URL}/b/isbn/${isbn}-${size}.jpg`;
 }

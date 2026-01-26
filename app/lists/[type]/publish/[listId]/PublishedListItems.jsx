@@ -13,7 +13,8 @@ import {
 
 export default function PublishedListItems({
   items, // The array of items
-  listIsMovieType, // Boolean: true if items are movies
+  listType, // String: 'movie', 'tv', 'book', 'podcast', 'album', 'custom'
+  urlType, // String: URL type like 'movies', 'tv', 'books', etc.
   onMoveUp, // Function to move item up (itemId) => void
   onMoveDown, // Function to move item down (itemId) => void
   onRemove, // Function to remove item (itemId) => void
@@ -41,6 +42,50 @@ export default function PublishedListItems({
     }, 300);
   };
 
+  // Helper to get item title based on type
+  const getItemTitle = (item) => {
+    // TMDB movies use 'title', everything else uses 'name'
+    return item.title || item.name || "Untitled";
+  };
+
+  // Helper to get item year based on type
+  const getItemYear = (item) => {
+    // Try various date/year fields
+    const dateField = item.release_date || item.first_air_date || item.year;
+    if (!dateField) return "N/A";
+    // If it's already a year number, return it
+    if (typeof dateField === "number") return dateField;
+    // If it's a date string, extract the year
+    try {
+      return new Date(dateField).getFullYear();
+    } catch {
+      return "N/A";
+    }
+  };
+
+  // Helper to get poster/image path
+  const getImagePath = (item) => {
+    // TMDB uses poster_path
+    if (item.poster_path) {
+      return `https://image.tmdb.org/t/p/w92${item.poster_path}`;
+    }
+    // Other providers may use 'image' directly
+    if (item.image) {
+      return item.image;
+    }
+    return "/placeholder-movie.jpg";
+  };
+
+  // Helper to get detail page path (only for types that have detail pages)
+  const getDetailPath = (item) => {
+    // Only movies and TV have detail pages currently
+    if (listType === "movie" || listType === "tv") {
+      return `/${urlType}/${item.id}`;
+    }
+    // Return null for types without detail pages
+    return null;
+  };
+
   if (!items || items.length === 0) {
     return (
       <p className="text-center text-gray-500 dark:text-gray-400 py-8">
@@ -52,19 +97,10 @@ export default function PublishedListItems({
   return (
     <ul className="space-y-3">
       {items.map((item, index) => {
-        // Logic previously in PublishedListItem is now inline
-        const title = listIsMovieType ? item.title : item.name;
-        const year = listIsMovieType
-          ? item.release_date
-            ? new Date(item.release_date).getFullYear()
-            : "N/A"
-          : item.first_air_date
-          ? new Date(item.first_air_date).getFullYear()
-          : "N/A";
-        const posterPath = item.poster_path
-          ? `https://image.tmdb.org/t/p/w92${item.poster_path}`
-          : "/placeholder-movie.jpg";
-        const detailPath = `/${listIsMovieType ? "movies" : "tv"}/${item.id}`;
+        const title = getItemTitle(item);
+        const year = getItemYear(item);
+        const imagePath = getImagePath(item);
+        const detailPath = getDetailPath(item);
         const isFirstItem = index === 0;
         const isLastItem = index === items.length - 1;
 
@@ -95,46 +131,84 @@ export default function PublishedListItems({
               {index + 1}
             </div>
 
-            {/* Item Info Link */}
-            <Link
-              href={detailPath}
-              className="flex items-center grow min-w-0 group mr-2 cursor-pointer"
-              title={`View details for ${title}`}
-            >
-              <div className="shrink-0 w-10 h-14 relative mr-3 bg-gray-200 dark:bg-gray-600 rounded">
-                <Image
-                  src={posterPath}
-                  alt={`${title} poster`}
-                  fill
-                  sizes="40px"
-                  className="object-cover rounded cursor-pointer"
-                  unoptimized={posterPath === "/placeholder-movie.jpg"}
-                  onError={(e) => {
-                    e.target.src = "/placeholder-movie.jpg";
-                  }}
-                />
-              </div>
-              <div className="grow min-w-0">
-                <p className="font-medium truncate group-hover:underline">
-                  {title}
-                </p>
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span>{year}</span>
-                  {item.userRating && (
-                    <span className="flex items-center gap-0.5">
-                      {[...Array(item.userRating)].map((_, i) => (
-                        <StarIcon key={i} className="h-3.5 w-3.5 text-yellow-400" />
-                      ))}
-                    </span>
+            {/* Item Info - Link if detail page exists, otherwise div */}
+            {detailPath ? (
+              <Link
+                href={detailPath}
+                className="flex items-center grow min-w-0 group mr-2 cursor-pointer"
+                title={`View details for ${title}`}
+              >
+                <div className="shrink-0 w-10 h-14 relative mr-3 bg-gray-200 dark:bg-gray-600 rounded">
+                  <Image
+                    src={imagePath}
+                    alt={`${title} poster`}
+                    fill
+                    sizes="40px"
+                    className="object-cover rounded cursor-pointer"
+                    unoptimized={imagePath === "/placeholder-movie.jpg"}
+                    onError={(e) => {
+                      e.target.src = "/placeholder-movie.jpg";
+                    }}
+                  />
+                </div>
+                <div className="grow min-w-0">
+                  <p className="font-medium truncate group-hover:underline">
+                    {title}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span>{year}</span>
+                    {item.userRating && (
+                      <span className="flex items-center gap-0.5">
+                        {[...Array(item.userRating)].map((_, i) => (
+                          <StarIcon key={i} className="h-3.5 w-3.5 text-yellow-400" />
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                  {item.comment && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic truncate">
+                      "{item.comment}"
+                    </p>
                   )}
                 </div>
-                {item.comment && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic truncate">
-                    "{item.comment}"
+              </Link>
+            ) : (
+              <div className="flex items-center grow min-w-0 mr-2">
+                <div className="shrink-0 w-10 h-14 relative mr-3 bg-gray-200 dark:bg-gray-600 rounded">
+                  <Image
+                    src={imagePath}
+                    alt={`${title} image`}
+                    fill
+                    sizes="40px"
+                    className="object-cover rounded"
+                    unoptimized={imagePath === "/placeholder-movie.jpg"}
+                    onError={(e) => {
+                      e.target.src = "/placeholder-movie.jpg";
+                    }}
+                  />
+                </div>
+                <div className="grow min-w-0">
+                  <p className="font-medium truncate">
+                    {title}
                   </p>
-                )}
+                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span>{year}</span>
+                    {item.userRating && (
+                      <span className="flex items-center gap-0.5">
+                        {[...Array(item.userRating)].map((_, i) => (
+                          <StarIcon key={i} className="h-3.5 w-3.5 text-yellow-400" />
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                  {item.comment && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic truncate">
+                      "{item.comment}"
+                    </p>
+                  )}
+                </div>
               </div>
-            </Link>
+            )}
 
             {/* Action Buttons */}
             <div className="shrink-0 flex items-center space-x-1">

@@ -13,8 +13,8 @@ const Footer = () => {
         {/* Top section - 3 columns on desktop */}
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 dark:divide-slate-700">
           {/* Brand column */}
-          <div className="p-6">
-            <div className="flex items-baseline font-mono text-2xl tracking-tight">
+          <div className="p-4 sm:p-6">
+            <div className="flex items-baseline font-mono text-xl sm:text-2xl tracking-tight">
               <span className="text-slate-900 dark:text-white">sort</span>
               <span className="text-slate-500 dark:text-slate-400">(</span>
               <span className="text-blue-600 dark:text-blue-400 font-semibold">
@@ -33,7 +33,7 @@ const Footer = () => {
           </div>
 
           {/* Links column */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
               Navigation
             </h3>
@@ -66,7 +66,7 @@ const Footer = () => {
           </div>
 
           {/* About column */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
               About
             </h3>
@@ -96,7 +96,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-slate-200 dark:border-slate-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div className="border-t border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             {currentYear}{" "}
             <span className="font-mono">

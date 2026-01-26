@@ -1,11 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import { StarIcon } from "@heroicons/react/24/solid";
+import { StarIcon, FilmIcon, TvIcon, BookOpenIcon, MicrophoneIcon, MusicalNoteIcon, SparklesIcon } from "@heroicons/react/24/solid";
 import { StarIcon as StarOutline } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
+import { getImageUrl } from "./themeUtils";
 
 const LOG_PREFIX = "[ListThemeClassic]";
+
+// Category-based fallback icons
+const CATEGORY_ICONS = {
+  movie: FilmIcon,
+  tv: TvIcon,
+  book: BookOpenIcon,
+  podcast: MicrophoneIcon,
+  album: MusicalNoteIcon,
+  custom: SparklesIcon,
+};
 
 /**
  * Classic list theme - numbered list with posters, ratings, and comments
@@ -53,9 +64,9 @@ export default function ListThemeClassic({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-4 sm:p-6">
       {/* List Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <h1
           className="text-2xl sm:text-3xl font-bold mb-2"
           style={{ color: accentColor }}
@@ -94,17 +105,20 @@ export default function ListThemeClassic({
 
             {/* Poster */}
             <div className="shrink-0 w-16 h-24 relative rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-              {item.poster_path ? (
+              {getImageUrl(item, "medium") ? (
                 <Image
-                  src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                  src={getImageUrl(item, "medium")}
                   alt={item.title || item.name}
                   fill
                   sizes="64px"
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No Image
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                  {(() => {
+                    const FallbackIcon = CATEGORY_ICONS[item.category || list.category] || FilmIcon;
+                    return <FallbackIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />;
+                  })()}
                 </div>
               )}
             </div>
