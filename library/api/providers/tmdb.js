@@ -40,7 +40,7 @@ function normalizeMovie(raw) {
     name: raw.title,
     image: getPosterUrl(raw.poster_path),
     year: extractYear(raw.release_date),
-    subtitle: raw.release_date ? `${extractYear(raw.release_date)}` : null,
+    subtitle: raw.vote_average ? `${raw.vote_average.toFixed(1)} rating` : null,
     metadata: {
       originalTitle: raw.original_title,
       overview: raw.overview,
@@ -69,7 +69,7 @@ function normalizeTvShow(raw) {
     name: raw.name,
     image: getPosterUrl(raw.poster_path),
     year: extractYear(raw.first_air_date),
-    subtitle: raw.first_air_date ? `${extractYear(raw.first_air_date)}` : null,
+    subtitle: raw.vote_average ? `${raw.vote_average.toFixed(1)} rating` : null,
     metadata: {
       originalName: raw.original_name,
       overview: raw.overview,

@@ -9,7 +9,7 @@ import {
   TvIcon,
   BookOpenIcon,
   MicrophoneIcon,
-  SparklesIcon,
+  MusicalNoteIcon,
 } from "@heroicons/react/24/solid";
 import { discover, CATEGORIES } from "@/library/api/providers";
 
@@ -22,7 +22,7 @@ function getCategoryIcon(category) {
     tv: TvIcon,
     book: BookOpenIcon,
     podcast: MicrophoneIcon,
-    anime: SparklesIcon,
+    album: MusicalNoteIcon,
   };
   return icons[category] || FilmIcon;
 }
@@ -36,7 +36,7 @@ function getCategoryGradient(category) {
     tv: "from-blue-600 to-indigo-700",
     book: "from-emerald-600 to-teal-700",
     podcast: "from-purple-600 to-violet-700",
-    anime: "from-pink-500 to-rose-600",
+    album: "from-pink-500 to-rose-600",
   };
   return gradients[category] || "from-slate-600 to-slate-700";
 }

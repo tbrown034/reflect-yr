@@ -12,6 +12,8 @@ import {
   updateListInDatabase,
   deleteListFromDatabase,
   mergeListsWithDatabase,
+  getUnsyncedLists,
+  syncListToDatabase,
 } from "@/library/utils/listSync";
 
 const LOG_PREFIX = "[ListContext]";
@@ -47,10 +49,10 @@ export const LIST_THEMES = {
     name: "Family Feud",
     description: "Reveal one by one, game show style",
   },
-  awards: {
-    id: "awards",
-    name: "Awards Show",
-    description: "Elegant awards ceremony style",
+  podium: {
+    id: "podium",
+    name: "Podium",
+    description: "Olympic-style 1st, 2nd, 3rd",
   },
   minimalist: {
     id: "minimalist",
@@ -184,6 +186,27 @@ export function ListProvider({ children }) {
           const mergedLists = mergeListsWithDatabase(localPublishedLists, dbLists);
           setPublishedLists(mergedLists);
           console.log(`${LOG_PREFIX} Merged ${dbLists.length} database lists with localStorage`);
+
+          // Sync any localStorage-only lists to database (fire and forget)
+          const unsyncedLists = getUnsyncedLists(localPublishedLists, dbLists);
+          if (unsyncedLists.length > 0) {
+            console.log(`${LOG_PREFIX} Syncing ${unsyncedLists.length} localStorage lists to database...`);
+            unsyncedLists.forEach((list) => {
+              syncListToDatabase(list).then(({ success, list: syncedList }) => {
+                if (success && syncedList) {
+                  setPublishedLists((prev) => ({
+                    ...prev,
+                    [list.id]: {
+                      ...prev[list.id],
+                      shareCode: syncedList.shareCode,
+                      syncedAt: new Date().toISOString(),
+                    },
+                  }));
+                  console.log(`${LOG_PREFIX} Synced list to database: ${list.id}`);
+                }
+              });
+            });
+          }
         } else if (error) {
           console.warn(`${LOG_PREFIX} Database fetch failed, using localStorage only:`, error);
           setPublishedLists(localPublishedLists);
@@ -287,11 +310,9 @@ export function ListProvider({ children }) {
   }, [getTotalListCount]);
 
   const hasReachedTotalListLimit = useCallback(() => {
-    // TODO: Check auth status - no limit for logged in users
-    const isLoggedIn = false;
     if (isLoggedIn) return false;
     return getTotalListCount() >= MAX_TOTAL_LISTS_ANONYMOUS;
-  }, [getTotalListCount]);
+  }, [getTotalListCount, isLoggedIn]);
 
   // ========================================
   // Temporary List Operations

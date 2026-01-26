@@ -6,14 +6,10 @@ import {
   FilmIcon,
   TvIcon,
   BookOpenIcon,
-  UserIcon,
-  TrophyIcon,
-  SparklesIcon,
   MicrophoneIcon,
-  PuzzlePieceIcon,
   PencilSquareIcon,
 } from "@heroicons/react/24/outline";
-import { CATEGORIES, getAllCategories } from "@/library/api/providers/types";
+import { getAllCategories } from "@/library/api/providers/types";
 
 const LOG_PREFIX = "[CategorySelector]";
 
@@ -22,11 +18,7 @@ const categoryIcons = {
   movie: FilmIcon,
   tv: TvIcon,
   book: BookOpenIcon,
-  athlete: UserIcon,
-  sportingEvent: TrophyIcon,
-  anime: SparklesIcon,
   podcast: MicrophoneIcon,
-  game: PuzzlePieceIcon,
   custom: PencilSquareIcon,
 };
 
@@ -35,11 +27,7 @@ const categoryDescriptions = {
   movie: "Films from any year",
   tv: "Television series",
   book: "Books and literature",
-  athlete: "Sports players",
-  sportingEvent: "Games and matches",
-  anime: "Japanese animation",
-  podcast: "Audio shows",
-  game: "Video games",
+  podcast: "Podcasts and shows",
   custom: "Create your own",
 };
 
@@ -52,7 +40,10 @@ export default function CategorySelector({
 }) {
   console.log(`${LOG_PREFIX} Rendering with category: ${selectedCategory}`);
 
-  const categories = getAllCategories();
+  // Filter out album (deferred) - only show movie, tv, book, podcast, custom
+  const categories = getAllCategories().filter(
+    (cat) => cat.id !== "album" && cat.id !== "anime" && cat.id !== "sports"
+  );
 
   if (compact) {
     // Compact mode - horizontal pills
@@ -68,8 +59,8 @@ export default function CategorySelector({
               onClick={() => !disabled && onCategoryChange?.(category.id)}
               disabled={disabled}
               className={`
-                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
-                transition-all
+                inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-1.5 rounded-full text-sm font-medium
+                transition-all min-h-[44px] sm:min-h-0
                 ${
                   isSelected
                     ? "bg-blue-500 text-white"
@@ -90,7 +81,7 @@ export default function CategorySelector({
   // Full mode - grid cards
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
         {categories.map((category) => {
           const Icon = categoryIcons[category.id] || PencilSquareIcon;
           const isSelected = selectedCategory === category.id;
@@ -104,7 +95,7 @@ export default function CategorySelector({
               onClick={() => !disabled && onCategoryChange?.(category.id)}
               disabled={disabled}
               className={`
-                relative p-4 rounded-xl border-2 transition-all text-left
+                relative p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all text-left min-h-[44px]
                 ${
                   isSelected
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
@@ -123,7 +114,7 @@ export default function CategorySelector({
               {/* Category Icon */}
               <div
                 className={`
-                  w-10 h-10 rounded-lg flex items-center justify-center mb-2
+                  w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mb-2
                   ${
                     isSelected
                       ? "bg-blue-500 text-white"
@@ -131,24 +122,24 @@ export default function CategorySelector({
                   }
                 `}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
 
               {/* Category Name */}
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                 {category.name}
               </p>
 
               {/* Description */}
               {showDescription && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
                   {description}
                 </p>
               )}
 
               {/* Provider badge */}
               {category.provider !== "custom" && (
-                <div className="mt-2">
+                <div className="mt-1 sm:mt-2">
                   <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                     {category.hasImages ? "with images" : "text only"}
                   </span>

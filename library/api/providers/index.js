@@ -3,8 +3,6 @@
 
 import * as tmdbProvider from "./tmdb.js";
 import * as openLibraryProvider from "./openLibrary.js";
-import * as sportsDbProvider from "./sportsDb.js";
-import * as jikanProvider from "./jikan.js";
 import * as itunesProvider from "./itunes.js";
 import {
   CATEGORIES,
@@ -51,8 +49,6 @@ function parseYearParam(yearParam) {
 const providers = {
   tmdb: tmdbProvider,
   openLibrary: openLibraryProvider,
-  sportsDb: sportsDbProvider,
-  jikan: jikanProvider,
   itunes: itunesProvider,
 };
 
@@ -211,4 +207,4 @@ export {
 };
 
 // Export individual providers for direct access if needed
-export { tmdbProvider, openLibraryProvider, sportsDbProvider, jikanProvider, itunesProvider };
+export { tmdbProvider, openLibraryProvider, itunesProvider };

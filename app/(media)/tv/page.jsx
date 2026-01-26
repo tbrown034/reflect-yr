@@ -19,9 +19,9 @@ export default async function TvShowsPage({ searchParams }) {
   });
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-bold">Top TV Shows of {selectedYear}</h1>
+    <div className="container mx-auto px-3 sm:px-4 md:px-6 py-6 max-w-7xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 sm:mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Top TV Shows of {selectedYear}</h1>
         <div className="w-full md:w-48">
           <YearSelector initialYear={selectedYear} />
         </div>

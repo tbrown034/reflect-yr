@@ -77,6 +77,69 @@ async function getMigrationFiles() {
 }
 
 /**
+ * Split SQL content into individual statements
+ * Handles comments and multi-line statements
+ */
+function splitSqlStatements(content) {
+  // Remove single-line comments but preserve strings
+  const lines = content.split("\n");
+  const cleanedLines = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Skip empty lines and comment-only lines
+    if (trimmed === "" || trimmed.startsWith("--")) {
+      continue;
+    }
+    // Remove inline comments (but be careful with strings)
+    const commentIndex = line.indexOf("--");
+    if (commentIndex > 0) {
+      cleanedLines.push(line.substring(0, commentIndex));
+    } else {
+      cleanedLines.push(line);
+    }
+  }
+
+  const cleaned = cleanedLines.join("\n");
+
+  // Split on semicolons, handling $$ blocks for functions
+  const statements = [];
+  let current = "";
+  let inDollarBlock = false;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    const nextChar = cleaned[i + 1];
+
+    // Check for $$ delimiter
+    if (char === "$" && nextChar === "$") {
+      inDollarBlock = !inDollarBlock;
+      current += "$$";
+      i++; // Skip next $
+      continue;
+    }
+
+    if (char === ";" && !inDollarBlock) {
+      const stmt = current.trim();
+      if (stmt.length > 0) {
+        statements.push(stmt);
+      }
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  // Don't forget the last statement if no trailing semicolon
+  const lastStmt = current.trim();
+  if (lastStmt.length > 0) {
+    statements.push(lastStmt);
+  }
+
+  return statements;
+}
+
+/**
  * Execute a single migration
  */
 async function executeMigration(filename) {
@@ -86,8 +149,20 @@ async function executeMigration(filename) {
   console.log(`${LOG_PREFIX} Executing: ${filename}`);
 
   try {
-    // Execute the migration SQL
-    await sql(content);
+    // Split into individual statements (Neon doesn't support multiple statements)
+    const statements = splitSqlStatements(content);
+    console.log(`${LOG_PREFIX} Found ${statements.length} statements to execute`);
+
+    // Execute each statement
+    for (let i = 0; i < statements.length; i++) {
+      const stmt = statements[i];
+      try {
+        await sql.query(stmt);
+      } catch (stmtErr) {
+        console.error(`${LOG_PREFIX} Statement ${i + 1} failed:`, stmt.substring(0, 100) + "...");
+        throw stmtErr;
+      }
+    }
 
     // Record the migration as completed
     await sql`INSERT INTO migrations (name) VALUES (${filename})`;

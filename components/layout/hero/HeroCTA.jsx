@@ -1,15 +1,19 @@
+// components/layout/hero/HeroCTA.jsx
+// Simple CTA buttons - no dropdown confusion
+
 import Link from "next/link";
-import HeroGetStarted from "./HeroButtons/HeroGetStarted";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
 export default function HeroCTA() {
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-      <HeroGetStarted />
+    <div className="flex flex-col sm:flex-row items-center gap-3">
+      {/* Primary CTA - goes straight to create */}
       <Link
-        href="/lists"
-        className="rounded-lg px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold transition-all duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800 active:scale-[0.98] cursor-pointer shadow-md transform bg-white dark:bg-slate-700 text-slate-700 border border-slate-400 hover:bg-slate-100 hover:border-slate-500 dark:text-slate-200 dark:border-slate-500 dark:hover:bg-slate-600 dark:hover:border-slate-400 hover:shadow-lg focus-visible:ring-slate-500"
+        href="/create"
+        className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-base bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition-all cursor-pointer"
       >
-        Explore Lists
+        Start a List
+        <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </div>
   );

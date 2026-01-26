@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="15" fill="#3B82F6"/>
-  <path d="M11 8h6c3.3 0 6 2.2 6 5 0 2.2-1.5 4-3.7 4.7L23 24h-4l-3.5-6H13v6h-3V8h1zm3 3v4h3c1.7 0 3-0.9 3-2s-1.3-2-3-2h-3z" fill="white"/>
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#0f172a"/>
+  <!-- Parentheses -->
+  <text x="4" y="23" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#94a3b8">(</text>
+  <text x="23" y="23" font-family="ui-monospace, monospace" font-size="18" font-weight="600" fill="#94a3b8">)</text>
+  <!-- id - highlighted -->
+  <text x="10" y="22" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#2563eb">id</text>
 </svg>

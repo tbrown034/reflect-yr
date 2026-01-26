@@ -44,14 +44,11 @@ const themeIcons = {
       </div>
     </div>
   ),
-  awards: (
-    <div className="flex flex-col items-center">
-      <div className="text-current text-lg">🏆</div>
-      <div className="flex gap-0.5 mt-1">
-        <div className="w-2 h-3 bg-current/50 rounded-sm" />
-        <div className="w-2 h-3 bg-current/40 rounded-sm" />
-        <div className="w-2 h-3 bg-current/30 rounded-sm" />
-      </div>
+  podium: (
+    <div className="flex items-end justify-center gap-0.5 h-full pt-2">
+      <div className="w-3 h-5 bg-current/60 rounded-t-sm" />
+      <div className="w-3 h-7 bg-current rounded-t-sm" />
+      <div className="w-3 h-4 bg-current/40 rounded-t-sm" />
     </div>
   ),
   minimalist: (
@@ -132,7 +129,7 @@ export default function ThemeSelector({
               <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {theme.name}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                 {theme.description}
               </p>
             </motion.button>

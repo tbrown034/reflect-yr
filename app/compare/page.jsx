@@ -153,7 +153,7 @@ export default function ComparePage() {
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* List Selectors */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid sm:grid-cols-2 gap-6 mb-8">
           {/* List 1 Selector */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -248,7 +248,7 @@ export default function ComparePage() {
                   Top Picks
                 </h3>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid sm:grid-cols-2 gap-6">
                   {/* List 1 Top */}
                   {comparison.list1Top && (
                     <div className="flex items-center gap-4">
@@ -372,14 +372,14 @@ export default function ComparePage() {
               )}
 
               {/* Side by Side Unique Picks */}
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid sm:grid-cols-2 gap-6">
                 {/* Unique to List 1 */}
                 {comparison.uniqueToList1.length > 0 && (
                   <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
                     <h3 className="text-lg font-semibold mb-4 text-blue-600">
                       Only in {list1?.title}
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {comparison.uniqueToList1.map((item, index) => (
                         <div
                           key={item.id}
@@ -412,7 +412,7 @@ export default function ComparePage() {
                     <h3 className="text-lg font-semibold mb-4 text-orange-600">
                       Only in {list2?.title}
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {comparison.uniqueToList2.map((item, index) => (
                         <div
                           key={item.id}

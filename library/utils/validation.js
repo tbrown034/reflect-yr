@@ -28,9 +28,6 @@ const VALID_CATEGORIES = [
   "movie",
   "tv",
   "book",
-  "athlete",
-  "anime",
-  "podcast",
   "custom",
 ];
 

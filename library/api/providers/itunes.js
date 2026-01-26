@@ -1,5 +1,5 @@
 // library/api/providers/itunes.js
-// iTunes/Apple Podcasts provider
+// iTunes/Apple provider for podcasts and albums
 
 const LOG_PREFIX = "[iTunesProvider]";
 const BASE_URL = "https://itunes.apple.com";
@@ -39,16 +39,71 @@ function normalizePodcast(raw) {
 }
 
 /**
- * Search for podcasts
+ * Normalize iTunes album to unified item shape
+ */
+function normalizeAlbum(raw) {
+  return {
+    id: `itunes_album_${raw.collectionId}`,
+    externalId: raw.collectionId,
+    category: "album",
+    provider: "itunes",
+    name: raw.collectionName,
+    image: raw.artworkUrl100?.replace("100x100", "600x600") || raw.artworkUrl100 || null,
+    year: raw.releaseDate ? parseInt(raw.releaseDate.split("-")[0]) : null,
+    subtitle: raw.artistName || null,
+    metadata: {
+      artistName: raw.artistName,
+      artistId: raw.artistId,
+      trackCount: raw.trackCount,
+      primaryGenre: raw.primaryGenreName,
+      country: raw.country,
+      explicit: raw.collectionExplicitness === "explicit",
+      copyright: raw.copyright,
+      artworkSmall: raw.artworkUrl60,
+      artworkMedium: raw.artworkUrl100,
+      artworkLarge: raw.artworkUrl100?.replace("100x100", "600x600"),
+      collectionViewUrl: raw.collectionViewUrl,
+      collectionPrice: raw.collectionPrice,
+      currency: raw.currency,
+    },
+    rank: null,
+    userRating: null,
+    comment: "",
+  };
+}
+
+/**
+ * Get normalizer and entity for category
+ */
+function getCategoryConfig(category) {
+  if (category === "album") {
+    return {
+      normalizer: normalizeAlbum,
+      media: "music",
+      entity: "album",
+    };
+  }
+  // Default to podcast
+  return {
+    normalizer: normalizePodcast,
+    media: "podcast",
+    entity: "podcast",
+  };
+}
+
+/**
+ * Search for podcasts or albums
  */
 export async function search(query, options = {}) {
-  const { limit = 10, country = "US" } = options;
-  console.log(`${LOG_PREFIX} Searching podcasts: "${query}"`);
+  const { limit = 10, country = "US", category = "podcast" } = options;
+  const config = getCategoryConfig(category);
+
+  console.log(`${LOG_PREFIX} Searching ${category}: "${query}"`);
 
   const params = new URLSearchParams({
     term: query,
-    media: "podcast",
-    entity: "podcast",
+    media: config.media,
+    entity: config.entity,
     limit: limit.toString(),
     country,
   });
@@ -63,9 +118,9 @@ export async function search(query, options = {}) {
     }
 
     const data = await response.json();
-    console.log(`${LOG_PREFIX} Found ${data.resultCount} podcasts`);
+    console.log(`${LOG_PREFIX} Found ${data.resultCount} ${category}s`);
 
-    return (data.results || []).slice(0, limit).map(normalizePodcast);
+    return (data.results || []).slice(0, limit).map(config.normalizer);
   } catch (error) {
     console.error(`${LOG_PREFIX} Search error:`, error);
     return [];
@@ -73,16 +128,19 @@ export async function search(query, options = {}) {
 }
 
 /**
- * Discover top podcasts
- * For year filtering, we check if podcast had episodes/activity in that year
+ * Discover top podcasts or albums
  */
 export async function discover(options = {}) {
-  const { limit = 20, year, genre, country = "US" } = options;
-  console.log(`${LOG_PREFIX} Discovering podcasts${year ? `, year: ${year}` : ""}`);
+  const { limit = 20, year, startYear, endYear, country = "US", category = "podcast" } = options;
+  const config = getCategoryConfig(category);
 
-  // iTunes doesn't have a great "discover" endpoint
-  // Use search for popular podcast terms
-  const searchTerms = ["top podcast", "popular podcast", "best podcast"];
+  console.log(`${LOG_PREFIX} Discovering ${category}s${year ? `, year: ${year}` : ""}`);
+
+  // Search terms for discovery
+  const searchTerms = category === "album"
+    ? ["top album", "best album", "popular album", "new album"]
+    : ["top podcast", "popular podcast", "best podcast"];
+
   const allResults = [];
   const seenIds = new Set();
 
@@ -91,15 +149,11 @@ export async function discover(options = {}) {
 
     const params = new URLSearchParams({
       term,
-      media: "podcast",
-      entity: "podcast",
-      limit: "50", // Fetch more to filter by year
+      media: config.media,
+      entity: config.entity,
+      limit: "50",
       country,
     });
-
-    if (genre) {
-      params.append("genreId", genre);
-    }
 
     try {
       const response = await fetch(`${BASE_URL}/search?${params}`, {
@@ -109,38 +163,44 @@ export async function discover(options = {}) {
       if (!response.ok) continue;
 
       const data = await response.json();
-      const podcasts = (data.results || []).map(normalizePodcast);
+      const items = (data.results || []).map(config.normalizer);
 
-      for (const podcast of podcasts) {
+      for (const item of items) {
         if (allResults.length >= limit) break;
-        if (seenIds.has(podcast.id)) continue;
+        if (seenIds.has(item.id)) continue;
 
-        // If year filter is set, only include podcasts from that year or still active
-        // Podcasts are considered "active in year" if they started before/during that year
-        if (year && podcast.year && podcast.year > year) continue;
+        // Year filtering
+        if (year && item.year && item.year !== year) continue;
+        if (startYear && endYear && item.year) {
+          if (item.year < startYear || item.year > endYear) continue;
+        }
 
-        seenIds.add(podcast.id);
-        allResults.push(podcast);
+        seenIds.add(item.id);
+        allResults.push(item);
       }
     } catch (error) {
       console.error(`${LOG_PREFIX} Discover error for term "${term}":`, error);
     }
   }
 
-  console.log(`${LOG_PREFIX} Found ${allResults.length} podcasts`);
+  console.log(`${LOG_PREFIX} Found ${allResults.length} ${category}s`);
   return allResults.slice(0, limit);
 }
 
 /**
- * Get podcast by ID
+ * Get item by ID
  */
 export async function getById(id, options = {}) {
-  const itunesId = String(id).replace(/^itunes_podcast_/, "");
-  console.log(`${LOG_PREFIX} Getting podcast: ${itunesId}`);
+  const { category = "podcast" } = options;
+  const config = getCategoryConfig(category);
+
+  // Strip prefix if present
+  const itunesId = String(id).replace(/^itunes_(podcast|album)_/, "");
+  console.log(`${LOG_PREFIX} Getting ${category}: ${itunesId}`);
 
   const params = new URLSearchParams({
     id: itunesId,
-    entity: "podcast",
+    entity: config.entity,
   });
 
   try {
@@ -149,13 +209,13 @@ export async function getById(id, options = {}) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch podcast: ${response.statusText}`);
+      throw new Error(`Failed to fetch ${category}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const podcast = data.results?.[0];
+    const item = data.results?.[0];
 
-    return podcast ? normalizePodcast(podcast) : null;
+    return item ? config.normalizer(item) : null;
   } catch (error) {
     console.error(`${LOG_PREFIX} GetById error:`, error);
     return null;
@@ -167,8 +227,8 @@ export async function getById(id, options = {}) {
  */
 export const providerInfo = {
   id: "itunes",
-  name: "Apple Podcasts",
-  categories: ["podcast"],
+  name: "Apple iTunes",
+  categories: ["podcast", "album"],
   requiresAuth: false,
-  rateLimit: null, // No documented limit
+  rateLimit: null,
 };

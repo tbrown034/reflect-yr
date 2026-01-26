@@ -13,7 +13,7 @@ import PublishedListItems from "./PublishedListItems";
 import PublishedListShare from "./PublishedListShare";
 import PublishedListActions from "./PublishedListActions";
 
-import { getShareableUrl, formatListText } from "@/library/utils/listUtils";
+import { getShareableUrl, getPublicShareUrl, formatListText } from "@/library/utils/listUtils";
 
 export default function PublishedListPage() {
   // Get route parameters
@@ -190,9 +190,12 @@ export default function PublishedListPage() {
 
   // Sharing handlers
   function handleCopyLink() {
-    if (!type || !listId || !isValidType) return;
+    if (!type || !listId || !isValidType || !listData) return;
 
-    const shareUrl = getShareableUrl(type, listId);
+    // Use the public share code URL if available, otherwise fallback to publish URL
+    const shareUrl = listData.shareCode
+      ? getPublicShareUrl(listData.shareCode)
+      : getShareableUrl(type, listId);
 
     navigator.clipboard
       .writeText(shareUrl)
@@ -223,7 +226,11 @@ export default function PublishedListPage() {
   function handleSocialShare(platform) {
     if (!type || !listId || !isValidType || !listData) return;
 
-    const shareUrl = encodeURIComponent(getShareableUrl(type, listId));
+    // Use the public share code URL if available
+    const rawUrl = listData.shareCode
+      ? getPublicShareUrl(listData.shareCode)
+      : getShareableUrl(type, listId);
+    const shareUrl = encodeURIComponent(rawUrl);
     const listTitle =
       listData.title || `My Top ${listIsMovieType ? "Movies" : "TV Shows"}`;
     const text = encodeURIComponent(`Check out my list: ${listTitle}`);

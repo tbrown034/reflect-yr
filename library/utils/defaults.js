@@ -16,4 +16,5 @@ export const CACHE_DURATION = 86400; // 24 hours
 
 export const MAX_LIST_SIZE = 10;
 
-export const DEFAULT_YEAR = "2025"; // String format for consistency
+// Use current year dynamically - string format for consistency with URL params
+export const DEFAULT_YEAR = String(new Date().getFullYear());

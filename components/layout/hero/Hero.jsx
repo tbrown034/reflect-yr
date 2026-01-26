@@ -1,49 +1,51 @@
+// components/layout/hero/Hero.jsx
+// Main hero section with visible grid layout
+
 import { Suspense } from "react";
 import HeroText from "./HeroText";
 import HeroCTA from "./HeroCTA";
-import ScrollingCategory from "./scrollingMedia/ScrollingCategory";
-import { CategoryRowSkeleton } from "@/components/ui/skeletons";
+import CategoryCards from "./CategoryCards";
+import ExampleList from "./ExampleList";
+import ScrollingMixed from "./scrollingMedia/ScrollingMixed";
 import { DEFAULT_YEAR } from "@/library/utils/defaults";
-
-// Categories to display on the home page with their scroll directions
-const HOME_CATEGORIES = [
-  { category: "movie", direction: "left", name: "Movies" },
-  { category: "tv", direction: "right", name: "TV Shows" },
-  { category: "book", direction: "left", name: "Books" },
-  { category: "anime", direction: "right", name: "Anime" },
-  { category: "podcast", direction: "left", name: "Podcasts" },
-];
 
 export default async function Hero({ searchParams }) {
   const year = searchParams?.year || DEFAULT_YEAR;
 
   return (
     <div className="flex flex-col">
-      {/* Hero section - centered text and CTA */}
-      <section className="flex flex-col gap-6 justify-center items-center px-4 py-8 md:py-12">
+      {/* Hero section - brand and CTA */}
+      <section className="flex flex-col gap-5 justify-center items-center px-4 py-10 md:py-14">
         <HeroText />
         <HeroCTA />
       </section>
 
-      {/* Content rows section */}
-      <section className="flex flex-col gap-10 py-6">
-        {HOME_CATEGORIES.map(({ category, direction, name }) => (
-          <Suspense
-            key={category}
-            fallback={<CategoryRowSkeleton title={`Popular ${name}`} />}
-          >
-            <ScrollingCategory
-              category={category}
-              year={year}
-              direction={direction}
-              limit={15}
-            />
-          </Suspense>
-        ))}
+      {/* Category cards grid - visible grid design */}
+      <section className="py-8 border-t border-slate-200 dark:border-slate-700">
+        <CategoryCards />
       </section>
 
-      {/* Bottom padding for mobile nav clearance */}
-      <div className="h-16" />
+      {/* Interactive example list */}
+      <section className="py-8 border-t border-slate-200 dark:border-slate-700">
+        <ExampleList />
+      </section>
+
+      {/* Trending Now - grid of cards */}
+      <section className="py-8 border-t border-slate-200 dark:border-slate-700">
+        <div className="w-full max-w-4xl mx-auto px-4">
+          <div className="border-b border-slate-300 dark:border-slate-600 pb-3 mb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Trending Now
+            </h2>
+          </div>
+          <Suspense fallback={<div className="h-48 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-lg" />}>
+            <ScrollingMixed year={year} />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* Bottom spacing */}
+      <div className="h-12" />
     </div>
   );
 }

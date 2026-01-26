@@ -57,7 +57,7 @@ export default function ListThemeClassic({
       {/* List Header */}
       <div className="mb-8">
         <h1
-          className="text-3xl font-bold mb-2"
+          className="text-2xl sm:text-3xl font-bold mb-2"
           style={{ color: accentColor }}
         >
           {list.title}
@@ -82,7 +82,7 @@ export default function ListThemeClassic({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow"
           >
             {/* Rank */}
             <div

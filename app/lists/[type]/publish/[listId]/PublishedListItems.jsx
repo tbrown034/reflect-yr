@@ -8,6 +8,7 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   TrashIcon,
+  StarIcon,
 } from "@heroicons/react/24/solid";
 
 export default function PublishedListItems({
@@ -117,9 +118,21 @@ export default function PublishedListItems({
                 <p className="font-medium truncate group-hover:underline">
                   {title}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {year}
-                </p>
+                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span>{year}</span>
+                  {item.userRating && (
+                    <span className="flex items-center gap-0.5">
+                      {[...Array(item.userRating)].map((_, i) => (
+                        <StarIcon key={i} className="h-3.5 w-3.5 text-yellow-400" />
+                      ))}
+                    </span>
+                  )}
+                </div>
+                {item.comment && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 italic truncate">
+                    "{item.comment}"
+                  </p>
+                )}
               </div>
             </Link>
 
