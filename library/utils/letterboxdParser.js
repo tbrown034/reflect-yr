@@ -9,7 +9,7 @@
  * - watchlist.csv: Date,Name,Year,Letterboxd URI
  */
 
-const LOG_PREFIX = '[LetterboxdParser]';
+const LOG_PREFIX = "[LetterboxdParser]";
 
 /**
  * Parse a CSV string into an array of objects

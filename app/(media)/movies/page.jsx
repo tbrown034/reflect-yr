@@ -7,6 +7,11 @@ import { DEFAULT_YEAR } from "@/library/utils/defaults";
 import Link from "next/link";
 import { FilmIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 
+export const metadata = {
+  title: "Browse Movies | sort(id)",
+  description: "Discover popular movies by year and decade. Create ranked lists of your favorite films.",
+};
+
 export default async function MoviesPage({ searchParams }) {
   // Next.js 15: searchParams is now a Promise, must await it
   const params = await searchParams;

@@ -6,6 +6,11 @@ import { DEFAULT_YEAR } from "@/library/utils/defaults";
 import Link from "next/link";
 import { TvIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 
+export const metadata = {
+  title: "Browse TV Shows | sort(id)",
+  description: "Discover popular TV shows by year. Create ranked lists of your favorite series.",
+};
+
 export default async function TvShowsPage({ searchParams }) {
   // Next.js 15: searchParams is now a Promise, must await it
   const params = await searchParams;

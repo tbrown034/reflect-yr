@@ -1,17 +1,64 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { auth } from "@/library/auth";
+import { rateLimit } from "@/library/utils/rateLimit";
 import { formatRecommendationPrompt } from "@/library/utils/recommendationsUtils";
 import { searchTmdbByTitle } from "@/library/api/tmdb";
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const LOG_PREFIX = "[Recommendations API]";
+
+// Valid media types for recommendations
+const VALID_TYPES = ["movie", "tv"];
 
 export async function POST(request) {
   try {
-    // No auth required - recommendations are available to all users
+    // Check authentication
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session?.user?.id) {
+      console.log(`${LOG_PREFIX} Unauthorized: No session`);
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Apply rate limiting (10 requests per minute per user)
+    const { allowed, remaining, resetIn } = rateLimit(
+      `ai:recommendations:${session.user.id}`,
+      10,
+      60000
+    );
+
+    if (!allowed) {
+      console.log(`${LOG_PREFIX} Rate limit exceeded for user: ${session.user.id}`);
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Try again in a minute." },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(resetIn),
+          },
+        }
+      );
+    }
+
     const { listId, type, items } = await request.json();
 
+    // Validate required fields
     if (!listId || !type || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: "Missing or invalid data" },
+        { status: 400 }
+      );
+    }
+
+    // Validate type parameter
+    if (!VALID_TYPES.includes(type)) {
+      return NextResponse.json(
+        { error: `Invalid type. Must be one of: ${VALID_TYPES.join(", ")}` },
         { status: 400 }
       );
     }
@@ -92,9 +139,18 @@ export async function POST(request) {
       })
     );
 
-    return NextResponse.json({ recommendations: enrichedRecommendations });
+    console.log(`${LOG_PREFIX} Success for user: ${session.user.id}, type: ${type}`);
+
+    return NextResponse.json(
+      { recommendations: enrichedRecommendations },
+      {
+        headers: {
+          "X-RateLimit-Remaining": String(remaining),
+        },
+      }
+    );
   } catch (err) {
-    console.error("Recommendation route error:", err);
+    console.error(`${LOG_PREFIX} Error:`, err);
     return NextResponse.json(
       {
         error:

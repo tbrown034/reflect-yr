@@ -2,7 +2,7 @@
  * Utility functions for working with lists in the application
  */
 
-const LOG_PREFIX = "[listUtils]";
+const LOG_PREFIX = "[ListUtils]";
 
 /**
  * Generates a unique ID for published lists

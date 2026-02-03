@@ -8,7 +8,7 @@
  * - Invalid data entering the system
  */
 
-const LOG_PREFIX = "[validation]";
+const LOG_PREFIX = "[Validation]";
 
 // =============================================================================
 // Constants

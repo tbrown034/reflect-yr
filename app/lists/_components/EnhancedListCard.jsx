@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -42,8 +41,6 @@ export default function EnhancedListCard({
   onPreview,
   isRecommendation = false,
 }) {
-  const [showActions, setShowActions] = useState(false);
-
   const type = list.type || "movie";
   const urlType = CATEGORY_TO_URL[type] || type;
   const itemCount = list.items?.length || 0;
@@ -74,8 +71,6 @@ export default function EnhancedListCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
     >
       <Link href={path} className="block p-4">
         {/* Stacked posters + title row */}
@@ -151,14 +146,13 @@ export default function EnhancedListCard({
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Actions - always visible on mobile, hover on desktop */}
           <div className="shrink-0" onClick={(e) => e.preventDefault()}>
             <ListCardActions
               list={list}
               onDelete={onDelete}
               onShare={onShare}
               onPreview={onPreview}
-              visible={showActions}
             />
           </div>
         </div>

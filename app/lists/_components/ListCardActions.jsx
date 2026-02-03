@@ -12,20 +12,19 @@ import {
 
 /**
  * ListCardActions - Kebab menu with quick actions for list cards
+ * On mobile (< md), the button is always visible for touch accessibility.
+ * On desktop (md+), the button appears on hover via CSS group-hover.
  */
 export default function ListCardActions({
   list,
   onDelete,
   onShare,
   onPreview,
-  visible = false,
 }) {
   return (
     <Menu as="div" className="relative">
       <Menu.Button
-        className={`p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-all ${
-          visible ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        }`}
+        className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
         aria-label="List actions"
       >
         <EllipsisVerticalIcon className="h-5 w-5 text-slate-400" />
